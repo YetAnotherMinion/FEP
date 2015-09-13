@@ -31,8 +31,10 @@ before_install:
 install:
   -
   - git clone -b maint https://bitbucket.org/petsc/petsc /tmp/petsc
-  - wget http://ftp.mcs.anl.gov/pub/petsc/externalpackages/fblaslapack-3.4.2.tar.gz /tmp/packages/  #download needed packages
-  - wget http://crd.lbl.gov/~xiaoye/SuperLU/superlu_4.3.tar.gz /tmp/packages/
+  - cd /tmp/packages
+  - wget http://ftp.mcs.anl.gov/pub/petsc/externalpackages/fblaslapack-3.4.2.tar.gz  #download needed packages
+  - wget http://crd.lbl.gov/~xiaoye/SuperLU/superlu_4.3.tar.gz
+  - cd -
 
 #create the bin directories
 before_script:
