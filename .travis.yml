@@ -2,6 +2,9 @@ language: cpp
 #run on latest container based infrastructure
 sudo: false
 
+branches:
+  - master
+
 compiler:
   - clang
   - gcc
@@ -13,15 +16,33 @@ addons:
       - openmpi
       - mpich
 
+env:
+  - MPI=mpich
+  - MPI=openmpi
+
 before_install:
-  - echo "not using sudo"
-#  - apt-get install -q gfortran openmpi-bin openmpi-common libopenmpi-dev;
+  - module avail
+  - module load $MPI
+  - export MAIN_DIR=$PWD
+
+install:
+  -
+  - git clone -b maint https://bitbucket.org/petsc/petsc /tmp/petsc
+  - wget http://ftp.mcs.anl.gov/pub/petsc/externalpackages/fblaslapack-3.4.2.tar.gz /tmp/packages/  #download needed packages
+  - wget http://crd.lbl.gov/~xiaoye/SuperLU/superlu_4.3.tar.gz /tmp/packages/
 
 #create the bin directories
 before_script:
+  - mkdir a1/obj a2/obj a3/obj a4/obj 
+  - mkdir a1/bin a2/bin a3/bin a4/bin
+  - mkdir a1/lib a2/lib a3/bin a4/lib
 
-
-script: echo -e "foo"
+script: 
+  - echo $PWD
+  - make -C a1
+  - make -C a2
+  - make -C a3
+  - make -C a4
 
 notifications:
   webhooks:
