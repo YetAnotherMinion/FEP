@@ -13,16 +13,19 @@ compiler:
 addons:
   apt:
     packages:
-      - openmpi
-      - mpich
+      - gfortran        # used by all
+      - openmpi-bin     # -+
+      - openmpi-common  #  | all for openmpi
+      - libopenmpi-dev  # -+
+      - mpich2          # -+
+      - libmpich2-3     #  | all for mpich2
+      - libmpich2-dev   # -+
 
 env:
-  - MPI=mpich
   - MPI=openmpi
+  - MPI=mpich2
 
 before_install:
-  - module avail
-  - module load $MPI
   - export MAIN_DIR=$PWD
 
 install:
@@ -36,6 +39,8 @@ before_script:
   - mkdir a1/obj a2/obj a3/obj a4/obj 
   - mkdir a1/bin a2/bin a3/bin a4/bin
   - mkdir a1/lib a2/lib a3/bin a4/lib
+  - MPIEXEC='mpiexec'
+  - test $MPI == mpich2 && MPIEXEC='mpiexec -launcher fork' || true
 
 script: 
   - echo $PWD
