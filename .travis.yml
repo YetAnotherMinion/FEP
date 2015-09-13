@@ -29,20 +29,25 @@ before_install:
   - export MAIN_DIR=$PWD
 
 install:
-  -
+  - echo $PWD
   - git clone -b maint https://bitbucket.org/petsc/petsc /tmp/petsc
   - git clone https://github.com/YetAnotherMinion/googletest.git /tmp/googletest
   - git clone https://github.com/SCOREC/core.git /tmp/core
   - mkdir /tmp/packages && cd /tmp/packages
   - wget http://ftp.mcs.anl.gov/pub/petsc/externalpackages/fblaslapack-3.4.2.tar.gz  #download needed packages
   - wget http://crd.lbl.gov/~xiaoye/SuperLU/superlu_4.3.tar.gz
-  - cd -
+  - cp $MAIN_DIR/install_petsc.sh /tmp/petsc && cd /tmp/petsc
+  - ./install_petsc.sh /tmp/packages/petsc-3.6.1 /tmp/petsc /tmp/packages
+  - make PETSC_DIR=/tmp/petsc PETSC_ARCH=linux-mpich all
+  - make PETSC_ARCH=linux-mpich all test
+
+
 
 #create the bin directories
 before_script:
   - mkdir a1/obj a2/obj a3/obj a4/obj 
   - mkdir a1/bin a2/bin a3/bin a4/bin
-  - mkdir a1/lib a2/lib a3/bin a4/lib
+  - mkdir a1/lib a2/lib a3/lib a4/lib
   - MPIEXEC='mpiexec'
   - test $MPI == mpich2 && MPIEXEC='mpiexec -launcher fork' || true
 
