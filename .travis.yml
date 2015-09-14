@@ -40,7 +40,7 @@ install:
   - ./install_petsc.sh /tmp/packages/petsc-3.6.1 /tmp/petsc /tmp/packages
   - make PETSC_DIR=/tmp/petsc PETSC_ARCH=linux-mpich all
   - make PETSC_DIR=/tmp/petsc PETSC_ARCH=linux-mpich install # install the libraries
-  - make PETSC_ARCH=linux-mpich all test
+  - make PETSC_DIR=/tmp/packages/petsc-3.6.1 PETSC_ARCH="" test # test the installed library
 
 
 
