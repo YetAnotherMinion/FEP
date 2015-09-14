@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <assert.h>
 
 #include <apf.h>
 #include <gmi_mesh.h>

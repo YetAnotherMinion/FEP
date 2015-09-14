@@ -8,10 +8,7 @@
 
 #include <apf.h>
 #include <apfMesh.h>
-#include <apfVectorElement.h>
-#include <apfElement.h>
 #include <apfNumbering.h>
-#include <apfElement.h>
 
 #define VERT_BC_TAG_NAME "vertBCtag"
 #define EDGE_BC_TAG_NAME "edgeBCtag"

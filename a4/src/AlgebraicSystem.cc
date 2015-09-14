@@ -193,7 +193,7 @@ void AlgebraicSystem::beginAssembly() {
 
 void AlgebraicSystem::assemble(
 	apf::DynamicMatrix const& ke,
-	apf::NewArray<int> const& node_mapping,
+	can::NewArray<int> const& node_mapping,
 	uint32_t nLocalDOFs)
 {
 	/*CHECK if assembly is possible*/
@@ -371,7 +371,7 @@ void AlgebraicSystem::assemble(
 
 void AlgebraicSystem::assemble(
 	std::vector<double> const& fe,
-	apf::NewArray<int> const& node_mapping,
+	can::NewArray<int> const& node_mapping,
 	uint32_t nLocalDOFs)
 {
 	/*iterate over the input vector and add each value

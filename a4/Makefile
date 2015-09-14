@@ -4,7 +4,6 @@ include $(CONFIG).mk
 BDIR = ./bin
 SDIR = ./src
 IDIR = ./inc
-LDIR = ./lib
 ODIR = ./obj
 
 

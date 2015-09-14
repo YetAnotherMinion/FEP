@@ -2,12 +2,12 @@
 #include "StiffnessContributor2D.h"
 #include "ForceContributor2D.h"
 #include "MeshAdjReorder.h" 
-
 #include "MeshBuilder.h"/*gives us the entity tags used find constraints
 						* and boundary conditions */
 #include "GeometryMappings.h" /*gives us the special enity tags enum*/
 
 #include <fstream>
+#include <assert.h>
 
 #include <PCU.h>
 
@@ -318,11 +318,13 @@ uint32_t ElasticAnalysis2D::recover()
 	assert(NUM_COMPONENTS <= 3);
 	apf::FieldShape* fs = apf::getShape(this->disp_field);
 
+
 	for(std::size_t dim = 0; dim <= 2; ++dim) {
 		if(fs->hasNodesIn(dim)) {
 			it = this->m->begin(dim);
 			while((e = this->m->iterate(it))) {
-				for(std::size_t ii = 0; ii < this->disp_field->countNodesOn(e); ++ii) {
+				int entity_type = this->m->getType(e);
+				for(std::size_t ii = 0; ii < apf::countElementNodes(fs, entity_type); ++ii) {
 					/*get each component*/
 					for(std::size_t jj = 0; jj < NUM_COMPONENTS; ++jj) {
 						uint64_t gdof_indx = apf::getNumber(this->nodeNums, e, ii, jj);

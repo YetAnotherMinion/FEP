@@ -11,7 +11,6 @@
 #include <apfMesh.h>
 #include <apfMDS.h>
 #include <apfShape.h>
-#include <apfField.h>
 #include <apfNumbering.h>
 #include <apfMatrix.h>
 

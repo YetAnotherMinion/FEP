@@ -6,6 +6,8 @@
 #include <stdint.h>
 
 #include <apfDynamicMatrix.h>
+#include <canArray.h>
+#include <canNewArray.h>
 
 #include <petscksp.h>
 
@@ -27,11 +29,11 @@ public:
 	void beginAssembly();
 	void assemble(
 		apf::DynamicMatrix const& ke,
-		apf::NewArray<int> const& node_mapping,
+		can::NewArray<int> const& node_mapping,
 		uint32_t size);
 	void assemble(
 		std::vector<double> const& fe,
-		apf::NewArray<int> const& node_mapping,
+		can::NewArray<int> const& node_mapping,
 		uint32_t size);
 	PetscErrorCode synchronize();
 	PetscErrorCode solve();
