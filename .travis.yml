@@ -40,9 +40,9 @@ install:
   - tar xzf pumi_test_meshes.tar.gz -C /tmp/core/
   - cp $MAIN_DIR/install_petsc.sh /tmp/petsc && cd /tmp/petsc
   - ./install_petsc.sh /tmp/packages/petsc-3.6.1 /tmp/petsc /tmp/packages
-  - make -j 4 PETSC_DIR=/tmp/petsc PETSC_ARCH=linux-mpich all # use a reasonable number of threads
-  - make -j 4 PETSC_DIR=/tmp/petsc PETSC_ARCH=linux-mpich install # install the libraries
-  - make -j 4 PETSC_DIR=/tmp/packages/petsc-3.6.1 PETSC_ARCH="" test # test the installed library
+  - make PETSC_DIR=/tmp/petsc PETSC_ARCH=linux-mpich all
+  - make PETSC_DIR=/tmp/petsc PETSC_ARCH=linux-mpich install # install the libraries
+  - make PETSC_DIR=/tmp/packages/petsc-3.6.1 PETSC_ARCH="" test # test the installed library
   - cd /tmp/core && mkdir build && cd build
   - cp $MAIN_DIR/custom_pumi_configure.sh /tmp/core
   - source ../custom_pumi_configure.sh $MAIN_DIR/a4/lib/pumi /tmp/core/meshes
