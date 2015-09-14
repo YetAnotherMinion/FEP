@@ -28,6 +28,9 @@ env:
 
 before_install:
   - export MAIN_DIR=$PWD
+  - mkdir a1/obj a2/obj a3/obj a4/obj #create all needed dirs before any other steps 
+  - mkdir a1/bin a2/bin a3/bin a4/bin
+  - mkdir a1/lib a2/lib a3/lib a4/lib
 
 install:
   - echo $PWD
@@ -42,7 +45,7 @@ install:
   - cd /tmp/core && mkdir build && cd build
   - cp $MAIN_DIR/custom_pumi_configure.sh /tmp/core/custom_pumi_configure.sh
   - source ../custom_pumi_configure.sh $MAIN_DIR/a4/lib/pumi /tmp/core/meshes
-  - make -j 4
+  - make #use max num threads to build
   - make install -k
   - ctest -W
   - cp $MAIN_DIR/install_petsc.sh /tmp/petsc && cd /tmp/petsc
@@ -55,9 +58,6 @@ install:
 #create the bin directories
 before_script:
   - cd $MAIN_DIR
-  - mkdir a1/obj a2/obj a3/obj a4/obj 
-  - mkdir a1/bin a2/bin a3/bin a4/bin
-  - [ -d a4/lib ] || mkdir a1/lib a2/lib a3/lib a4/lib #may create a4/lib in previous steps
   - MPIEXEC='mpiexec'
   - test $MPI == mpich2 && MPIEXEC='mpiexec -launcher fork' || true
 
