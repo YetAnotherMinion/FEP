@@ -3,6 +3,9 @@
 #first arg is installation directory
 #second arg is test mesh location directory
 
+echo $CC
+echo $CXX
+
 cmake .. \
   -DCMAKE_C_COMPILER="mpicc" \
   -DCMAKE_CXX_COMPILER="mpicxx" \
