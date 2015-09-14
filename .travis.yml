@@ -20,6 +20,7 @@ addons:
       - mpich2          # -+
       - libmpich2-3     #  | all for mpich2
       - libmpich2-dev   # -+
+      - cmake
 
 env:
   - MPI=openmpi
