@@ -43,7 +43,7 @@ install:
   - cp $MAIN_DIR/custom_pumi_configure.sh /tmp/core/custom_pumi_configure.sh
   - source ../custom_pumi_configure.sh $MAIN_DIR/a4/lib/pumi /tmp/core/meshes
   - make -j 4
-  - make install -y
+  - make install -k
   - ctest -W
   - cp $MAIN_DIR/install_petsc.sh /tmp/petsc && cd /tmp/petsc
   - ./install_petsc.sh /tmp/packages/petsc-3.6.1 /tmp/petsc /tmp/packages
