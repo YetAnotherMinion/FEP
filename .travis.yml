@@ -36,16 +36,24 @@ install:
   - mkdir /tmp/packages && cd /tmp/packages
   - wget http://ftp.mcs.anl.gov/pub/petsc/externalpackages/fblaslapack-3.4.2.tar.gz  #download needed packages
   - wget http://crd.lbl.gov/~xiaoye/SuperLU/superlu_4.3.tar.gz
+  - wget https://www.scorec.rpi.edu/pumi/pumi_test_meshes.tar.gz #test meshes for PUMI
+  - tar xzf pumi_test_meshes.tar.gz /tmp/core/meshes
   - cp $MAIN_DIR/install_petsc.sh /tmp/petsc && cd /tmp/petsc
   - ./install_petsc.sh /tmp/packages/petsc-3.6.1 /tmp/petsc /tmp/packages
-  - make PETSC_DIR=/tmp/petsc PETSC_ARCH=linux-mpich all
-  - make PETSC_DIR=/tmp/petsc PETSC_ARCH=linux-mpich install # install the libraries
-  - make PETSC_DIR=/tmp/packages/petsc-3.6.1 PETSC_ARCH="" test # test the installed library
-
+  - make -j 4 PETSC_DIR=/tmp/petsc PETSC_ARCH=linux-mpich all # use a reasonable number of threads
+  - make -j 4 PETSC_DIR=/tmp/petsc PETSC_ARCH=linux-mpich install # install the libraries
+  - make -j 4 PETSC_DIR=/tmp/packages/petsc-3.6.1 PETSC_ARCH="" test # test the installed library
+  - cd /tmp/core && mkdir build && cd build
+  - cp $MAIN_DIR/custom_pumi_configure.sh /tmp/core
+  - source ../custom_pumi_configure.sh $MAIN_DIR/a4/lib/pumi /tmp/core/meshes
+  - make -j 4
+  - make install -y
+  - ctest -W
 
 
 #create the bin directories
 before_script:
+  - cd $MAIN_DIR
   - mkdir a1/obj a2/obj a3/obj a4/obj 
   - mkdir a1/bin a2/bin a3/bin a4/bin
   - mkdir a1/lib a2/lib a3/lib a4/lib
