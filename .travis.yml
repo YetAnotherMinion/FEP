@@ -57,7 +57,7 @@ before_script:
   - cd $MAIN_DIR
   - mkdir a1/obj a2/obj a3/obj a4/obj 
   - mkdir a1/bin a2/bin a3/bin a4/bin
-  - mkdir a1/lib a2/lib a3/lib a4/lib
+  - [ -d a4/lib ] || mkdir a1/lib a2/lib a3/lib a4/lib #may create a4/lib in previous steps
   - MPIEXEC='mpiexec'
   - test $MPI == mpich2 && MPIEXEC='mpiexec -launcher fork' || true
 
