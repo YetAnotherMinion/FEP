@@ -18,7 +18,6 @@ PUMI_LIBS += -L $(PUMI_DIR)/lib
 
 
 CFLAGS = -Wall -g -I $(IDIR) --pedantic-errors
-CXX = 
 #LIBS =  $(Lapf)/libapf.a $(Lgmi)/libgmi.a $(Lmds)/libmds.a $(Lpcu)/libpcu.a
 
 #use DEPS to require a rebuild whenever a header file changes

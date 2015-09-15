@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 
 bool hasNode(apf::Mesh2* m, apf::MeshEntity* e)
 {

@@ -61,7 +61,7 @@ before_script:
   - touch travis_config.mk
   - echo -e 'MPIFLAGS+="-cxx=clang++ -Wno-c++11-long-long" \nPETSC_DIR=/tmp/packages/petsc-3.6.1 \nLDIR=$MAIN_DIR/lib \nPUMI_DIR=$(LDIR)/pumi \nGTEST_DIR=/tmp/googletest' > travis_config.mk
   - cat travis_config.mk
-  - CONFIG= $MAIN_DIR/travis_config
+  - CONFIG= "$MAIN_DIR/travis_config"
   - MPIEXEC='mpiexec'
   - test $MPI == mpich2 && MPIEXEC='mpiexec -launcher fork' || true
   - mpiexec --version
