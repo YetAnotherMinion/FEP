@@ -16,10 +16,6 @@ PUMI_LIBS += -L $(PUMI_DIR)/lib
 #--verbose adds a lot of information to output and expands on include search path
 #-L$(Lgmi)/libgmi  -L$(Lapf)/libapf  -L$(Lpcu)/libpcu  -L$(Lmds)/libmds
 
-
-CFLAGS = -Wall -g -I $(IDIR) --pedantic-errors
-#LIBS =  $(Lapf)/libapf.a $(Lgmi)/libgmi.a $(Lmds)/libmds.a $(Lpcu)/libpcu.a
-
 #use DEPS to require a rebuild whenever a header file changes
 _DEPS = 
 DEPS = $(patsubst %, $(IDIR)/%, $(_DEPS))
@@ -40,22 +36,22 @@ MPIFLAGS += -Wall -g -I $(IDIR) --pedantic-errors
 all: ./bin/a1tet ./bin/a1quad ./bin/a1mix
 
 $(BDIR)/a1tet : $(ODIR)/a1tet.o
-	mpicxx $(CPPFLAGS) $(MPIFLAGS) $(LIBS) $(PUMI_LIBS) $< -lmds -lapf -lgmi -lpcu -lpthread -o $@ 
+	mpicxx $(CPPFLAGS) $(MPIFLAGS) $(CXXFLAGS) $(LIBS) $(PUMI_LIBS) $< -lmds -lapf -lgmi -lpcu -lpthread -o $@ 
 
 $(ODIR)/a1tet.o : $(SDIR)/a1tet.cc 
-	mpicxx $(CPPFLAGS) $(MPIFLAGS) $(PUMI_INC) -c $< -o $@ 
+	mpicxx $(CPPFLAGS) $(MPIFLAGS) $(CXXFLAGS) $(PUMI_INC) -c $< -o $@ 
 
 $(BDIR)/a1quad : $(ODIR)/a1quad.o 
-	mpicxx $(CPPFLAGS) $(MPIFLAGS) $(PUMI_LIBS) $< -lmds -lapf -lgmi -lpcu -lpthread -o $@ 
+	mpicxx $(CPPFLAGS) $(MPIFLAGS) $(CXXFLAGS) $(PUMI_LIBS) $< -lmds -lapf -lgmi -lpcu -lpthread -o $@ 
 
 $(ODIR)/a1quad.o : $(SDIR)/a1quad.cc 
-	mpicxx $(CPPFLAGS) $(MPIFLAGS) $(PUMI_INC) -c $< -o $@ 
+	mpicxx $(CPPFLAGS) $(MPIFLAGS) $(CXXFLAGS) $(PUMI_INC) -c $< -o $@ 
 
 $(BDIR)/a1mix : $(ODIR)/a1mix.o
-	mpicxx $(CPPFLAGS) $(MPIFLAGS) $(PUMI_LIBS) $< -lmds -lapf -lgmi -lpcu -lpthread -o $@ 
+	mpicxx $(CPPFLAGS) $(MPIFLAGS) $(CXXFLAGS) $(PUMI_LIBS) $< -lmds -lapf -lgmi -lpcu -lpthread -o $@ 
 
 $(ODIR)/a1mix.o : $(SDIR)/a1mix.cc 
-	mpicxx $(CPPFLAGS) $(MPIFLAGS) $(PUMI_INC) -c $< -o $@ 
+	mpicxx $(CPPFLAGS) $(MPIFLAGS) $(CXXFLAGS) $(PUMI_INC) -c $< -o $@ 
 
 #prevent anything from happening to a file named clean
 .FAKE : clean

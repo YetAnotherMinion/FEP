@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <fstream>
 #include <vector>
+#include <assert.h>
 #define INT_TAG_LENGTH 3
 
 int main(int argc, char** argv)
