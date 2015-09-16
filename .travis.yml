@@ -64,7 +64,7 @@ install:
 before_script:
   - cd $MAIN_DIR
   - touch travis_config.mk
-  - echo -e 'MPIFLAGS+="-cxx=clang++ -Wno-c++11-long-long" \nPETSC_DIR=/tmp/packages/petsc-3.6.1 \nLDIR=$(MAIN_DIR)/lib\nPUMI_DIR=$(LDIR)/pumi \nGTEST_DIR=/tmp/googletest' > travis_config.mk
+  - echo -e 'MPIFLAGS+="-cxx=clang++ -Wno-c++11-long-long"\nPETSC_DIR=/tmp/packages/petsc-3.6.1\nLDIR=$(MAIN_DIR)/lib\nPUMI_DIR=$(LDIR)/pumi\nGTEST_DIR=/tmp/googletest' > travis_config.mk
   - cat travis_config.mk | tee a1/config.mk a2/config.mk a3/config.mk a4/config.mk
   - MPIEXEC='mpiexec'
   - test $MPI == mpich2 && MPIEXEC='mpiexec -launcher fork' || true
