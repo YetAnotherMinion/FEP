@@ -1,5 +1,7 @@
 #include <assert.h>
 
+#include <apfShape.h>
+
 #include "GeometryMappings.h"
 
 void noConstraint(
@@ -74,9 +76,8 @@ void zeroDisplacementY_2D(
 	assert(curs_indx == nnodes);
 }
 
-GeometryMappings::GeometryMappings(apf::Mesh *m)
+GeometryMappings::GeometryMappings()
 {
-	mesh = m;
 	neumann_map.clear();
 	dirchelet_map.clear();
 	/*we insert some simple boundary conditions*/

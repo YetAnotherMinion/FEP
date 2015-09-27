@@ -42,6 +42,7 @@ install:
   - git clone -b maint https://bitbucket.org/petsc/petsc /tmp/petsc
   - git clone https://github.com/YetAnotherMinion/googletest.git /tmp/googletest
   - git clone https://github.com/SCOREC/core.git /tmp/core
+  - git clone https://github.com/SCOREC/fep.git /tmp/test_meshes #get the test meshes
   - mkdir /tmp/packages && cd /tmp/packages
   - wget http://ftp.mcs.anl.gov/pub/petsc/externalpackages/fblaslapack-3.4.2.tar.gz  #download needed packages
   - wget http://crd.lbl.gov/~xiaoye/SuperLU/superlu_4.3.tar.gz

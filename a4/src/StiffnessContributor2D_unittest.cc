@@ -195,7 +195,7 @@ TEST_P(StiffnessTest, CheckStiffnessMatrix) {
 		int entity_type = this->mesh->getType(e);
 		uint32_t nIntPoints = apf::countGaussPoints(entity_type, this->integration_order);
 		/*compute the differential volume once, then construct a new strain tensor*/
-		double jac_det = me->getDV(apf::Vector3(0.0, 0.0, 0.0));
+		double jac_det = apf::getDV(me, apf::Vector3(0.0, 0.0, 0.0));
 		apf::Matrix< 3,3 > local_D = this->D * jac_det;
 
 		for(uint32_t ii = 0; ii < nIntPoints; ++ii) {

@@ -19,16 +19,17 @@
 
 #define CONSTANT_DISPLACEMENT 3.5
 void ConstantDisplacementX_2D(
-	apf::MeshElement *me,
+	apf::MeshEntity *e,
+	apf::Mesh *mesh,
 	apf::Numbering* nodeNums,
 	std::vector<uint64_t> & dofs,
 	std::vector<double> & disp)
 {
-	int entity_type = me->getMesh()->getType(me->getEntity());
-	uint32_t nnodes = apf::countElementNodes(me->getMesh()->getShape(), entity_type);
+	int entity_type = mesh->getType(e);
+	uint32_t nnodes = apf::countElementNodes(mesh->getShape(), entity_type);
 	/*in 2D we assume there are only 2 dofs per node*/
 	apf::NewArray< int > node_mapping(nnodes*2);
-	uint32_t tmp_sz = apf::getElementNumbers(nodeNums, me->getEntity(), node_mapping);
+	uint32_t tmp_sz = apf::getElementNumbers(nodeNums, e, node_mapping);
 	assert((nnodes*2) == tmp_sz);
 	/*resize the vector to hold only the fixed dofs in this case is exactly
 	* nnodes*/
@@ -83,7 +84,7 @@ TEST_F(GeometryMappingTest, AddFunction) {
 	/*we do need to generate a mesh for this to work properly*/
 	GeometryMappings geo_map;
 	EXPECT_EQ(0, geo_map.dirchelet_map.count(LEFT_EDGE));
-	void (*fnc_ptr)(apf::MeshElement*, apf::Numbering*, std::vector<uint64_t> &, std::vector<double> &);
+	void (*fnc_ptr)(apf::MeshEntity*, apf::Mesh*, apf::Numbering*, std::vector<uint64_t> &, std::vector<double> &);
 	fnc_ptr = &noConstraint;
 	geo_map.addDircheletMapping(LEFT_EDGE, fnc_ptr);
 	EXPECT_EQ(1, geo_map.dirchelet_map.count(LEFT_EDGE));
@@ -92,7 +93,7 @@ TEST_F(GeometryMappingTest, AddFunction) {
 TEST_F(GeometryMappingTest, RetrieveFunction) {
 	/*we do need to generate a mesh for this to work properly*/
 	GeometryMappings geo_map;
-	void (*fnc_ptr)(apf::MeshElement*, apf::Numbering*, std::vector<uint64_t> &, std::vector<double> &);
+	void (*fnc_ptr)(apf::MeshEntity*, apf::Mesh*, apf::Numbering*, std::vector<uint64_t> &, std::vector<double> &);
 	fnc_ptr = &noConstraint;
 	geo_map.addDircheletMapping(LEFT_EDGE, fnc_ptr);
 	fnc_ptr = NULL;
@@ -105,7 +106,7 @@ TEST_F(GeometryMappingTest, RetrieveFunction) {
 
 TEST_F(GeometryMappingTest, DeleteFunction) {
 	GeometryMappings geo_map;
-	void (*fnc_ptr)(apf::MeshElement*, apf::Numbering*, std::vector<uint64_t> &, std::vector<double> &);
+	void (*fnc_ptr)(apf::MeshEntity*, apf::Mesh*, apf::Numbering*, std::vector<uint64_t> &, std::vector<double> &);
 	fnc_ptr = &noConstraint;
 	EXPECT_EQ(0, geo_map.dirchelet_map.count(LEFT_EDGE));
 	geo_map.addDircheletMapping(LEFT_EDGE, fnc_ptr);
@@ -119,7 +120,7 @@ TEST_F(GeometryMappingTest, DeleteFunction) {
 TEST_F(GeometryMappingTest, NoneConstraint) {
 	/*we do need to generate a mesh for this to work properly*/
 	GeometryMappings geo_map;
-	void (*fnc_ptr)(apf::MeshElement*, apf::Numbering*, std::vector<uint64_t> &, std::vector<double> &);
+	void (*fnc_ptr)(apf::MeshEntity*, apf::Mesh*, apf::Numbering*, std::vector<uint64_t> &, std::vector<double> &);
 	fnc_ptr = &noConstraint;
 	geo_map.addDircheletMapping(LEFT_EDGE, fnc_ptr);
 	fnc_ptr = NULL;
@@ -134,7 +135,7 @@ TEST_F(GeometryMappingTest, NoneConstraint) {
 TEST_F(GeometryMappingTest, ZeroDispInX) {
 	/*we do need to generate a mesh for this to work properly*/
 	GeometryMappings geo_map;
-	void (*fnc_ptr)(apf::MeshElement*, apf::Numbering*, std::vector<uint64_t> &, std::vector<double> &);
+	void (*fnc_ptr)(apf::MeshEntity*, apf::Mesh*, apf::Numbering*, std::vector<uint64_t> &, std::vector<double> &);
 	fnc_ptr = &zeroDisplacementX_2D;
 	geo_map.addDircheletMapping(LEFT_EDGE, fnc_ptr);
 
@@ -143,7 +144,7 @@ TEST_F(GeometryMappingTest, ZeroDispInX) {
 TEST_F(GeometryMappingTest, ZeroDispInY) {
 	/*we do need to generate a mesh for this to work properly*/
 	GeometryMappings geo_map;
-	void (*fnc_ptr)(apf::MeshElement*, apf::Numbering*, std::vector<uint64_t> &, std::vector<double> &);
+	void (*fnc_ptr)(apf::MeshEntity*, apf::Mesh*, apf::Numbering*, std::vector<uint64_t> &, std::vector<double> &);
 	fnc_ptr = &zeroDisplacementY_2D;
 	geo_map.addDircheletMapping(LEFT_EDGE, fnc_ptr);
 

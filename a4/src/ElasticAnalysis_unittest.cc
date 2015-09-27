@@ -61,7 +61,7 @@ TEST_F(ElasticAnalysisTest, AppRunTest) {
 	bool reorder_flag = true;
 	/*Fix the bottom edge in the Y direction only, and the
 	* left side in the X direction only*/
-	GeometryMappings* geo_map = new GeometryMappings(this->mesh);
+	GeometryMappings* geo_map = new GeometryMappings();
 	void (*cnstr_ptr)(apf::MeshEntity*, apf::Mesh*, apf::Numbering*, std::vector<uint64_t> &, std::vector<double> &);
 	cnstr_ptr = &zeroDisplacementX_2D;
 	geo_map->addDircheletMapping(LEFT_EDGE, cnstr_ptr);
@@ -191,7 +191,7 @@ TEST_F(ZeroConstraintZeroTraction, LinearQuad) {
 	uint32_t integration_order = 4;
 	bool reorder_flag = true;
 	/*currently unused*/
-	GeometryMappings* geo_map = new GeometryMappings(mesh);
+	GeometryMappings* geo_map = new GeometryMappings();
 	struct ElasticAnalysisInput input = {
 			mesh,
 			geo_map,
@@ -224,7 +224,7 @@ TEST_F(ZeroConstraintZeroTraction, LinearTri) {
 	uint32_t integration_order = 4;
 	bool reorder_flag = true;
 	/*currently unused*/
-	GeometryMappings* geo_map = new GeometryMappings(mesh);
+	GeometryMappings* geo_map = new GeometryMappings();
 	struct ElasticAnalysisInput input = {
 			mesh,
 			geo_map,
@@ -257,7 +257,7 @@ TEST_F(ZeroConstraintZeroTraction, QuadQuad) {
 	uint32_t integration_order = 4;
 	bool reorder_flag = true;
 	/*currently unused*/
-	GeometryMappings* geo_map = new GeometryMappings(mesh);
+	GeometryMappings* geo_map = new GeometryMappings();
 	struct ElasticAnalysisInput input = {
 			mesh,
 			geo_map,
@@ -290,7 +290,7 @@ TEST_F(ZeroConstraintZeroTraction, SerendipityQuad) {
 	uint32_t integration_order = 4;
 	bool reorder_flag = true;
 	/*currently unused*/
-	GeometryMappings* geo_map = new GeometryMappings(mesh);
+	GeometryMappings* geo_map = new GeometryMappings();
 	struct ElasticAnalysisInput input = {
 			mesh,
 			geo_map,
@@ -323,7 +323,7 @@ TEST_F(ZeroConstraintZeroTraction, QuadTri) {
 	uint32_t integration_order = 4;
 	bool reorder_flag = true;
 	/*currently unused*/
-	GeometryMappings* geo_map = new GeometryMappings(mesh);
+	GeometryMappings* geo_map = new GeometryMappings();
 	struct ElasticAnalysisInput input = {
 			mesh,
 			geo_map,

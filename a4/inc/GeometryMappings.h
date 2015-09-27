@@ -67,7 +67,7 @@ class GeometryMappings
 	*/
 
 public:
-	GeometryMappings(apf::Mesh *m);
+	GeometryMappings();
 	~GeometryMappings();
 
 	void addNeumannMapping(uint64_t key, neumann_fnc);
@@ -77,7 +77,6 @@ public:
 	std::map< uint64_t,bound_gen > dirchelet_map;
 
 private:
-	apf::Mesh* mesh;
 
 };
 
