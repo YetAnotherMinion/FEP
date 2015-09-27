@@ -38,24 +38,27 @@ enum GeoMapOptions {
 
 /*add a default zero constraint option*/
 void noConstraint(
-	apf::MeshElement*,
+	apf::MeshEntity*,
+	apf::Mesh*,
 	apf::Numbering*,
 	std::vector<uint64_t> &,
 	std::vector<double> &);
 void zeroDisplacementX_2D(
-	apf::MeshElement*,
+	apf::MeshEntity*,
+	apf::Mesh*,
 	apf::Numbering*,
 	std::vector<uint64_t> &,
 	std::vector<double> &);
 void zeroDisplacementY_2D(
-	apf::MeshElement*,
+	apf::MeshEntity*,
+	apf::Mesh*,
 	apf::Numbering*,
 	std::vector<uint64_t> &,
 	std::vector<double> &);
 
 
 typedef apf::Vector3(*neumann_fnc)(apf::Vector3 const& );
-typedef void(*bound_gen)(apf::MeshElement*, apf::Numbering* nodeNums, std::vector< uint64_t >&, std::vector < double > & );
+typedef void(*bound_gen)(apf::MeshEntity*, apf::Mesh*, apf::Numbering* nodeNums, std::vector< uint64_t >&, std::vector < double > & );
 
 class GeometryMappings
 {
@@ -64,7 +67,7 @@ class GeometryMappings
 	*/
 
 public:
-	GeometryMappings();
+	GeometryMappings(apf::Mesh *m);
 	~GeometryMappings();
 
 	void addNeumannMapping(uint64_t key, neumann_fnc);
@@ -74,6 +77,7 @@ public:
 	std::map< uint64_t,bound_gen > dirchelet_map;
 
 private:
+	apf::Mesh* mesh;
 
 };
 

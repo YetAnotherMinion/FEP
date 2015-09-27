@@ -1,7 +1,10 @@
+#include <assert.h>
+
 #include "GeometryMappings.h"
 
 void noConstraint(
-	apf::MeshElement *e,
+	apf::MeshEntity *e,
+	apf::Mesh *mesh,
 	apf::Numbering* nodeNums,
 	std::vector<uint64_t> &dofs,
 	std::vector<double> & disp)
@@ -12,16 +15,17 @@ void noConstraint(
 }
 
 void zeroDisplacementX_2D(
-	apf::MeshElement *me,
+	apf::MeshEntity *e,
+	apf::Mesh *mesh,
 	apf::Numbering* nodeNums,
 	std::vector<uint64_t> & dofs,
 	std::vector<double> & disp)
 {
-	int entity_type = me->getMesh()->getType(me->getEntity());
-	uint32_t nnodes = apf::countElementNodes(me->getMesh()->getShape(), entity_type);
+	int entity_type = mesh->getType(e);
+	uint32_t nnodes = apf::countElementNodes(mesh->getShape(), entity_type);
 	/*in 2D we assume there are only 2 dofs per node*/
 	apf::NewArray< int > node_mapping(nnodes*2);
-	uint32_t tmp_sz = apf::getElementNumbers(nodeNums, me->getEntity(), node_mapping);
+	uint32_t tmp_sz = apf::getElementNumbers(nodeNums, e, node_mapping);
 	assert((nnodes*2) == tmp_sz);
 	/*resize the vector to hold only the fixed dofs in this case is exactly
 	* nnodes*/
@@ -41,16 +45,17 @@ void zeroDisplacementX_2D(
 }
 
 void zeroDisplacementY_2D(
-	apf::MeshElement *me,
+	apf::MeshEntity *e,
+	apf::Mesh *mesh,
 	apf::Numbering* nodeNums,
 	std::vector<uint64_t> & dofs,
 	std::vector<double> & disp)
 {
-	int entity_type = me->getMesh()->getType(me->getEntity());
-	uint32_t nnodes = apf::countElementNodes(me->getMesh()->getShape(), entity_type);
+	int entity_type = mesh->getType(e);
+	uint32_t nnodes = apf::countElementNodes(mesh->getShape(), entity_type);
 	/*in 2D we assume there are only 2 dofs per node*/
 	apf::NewArray< int > node_mapping(nnodes*2);
-	uint32_t tmp_sz = apf::getElementNumbers(nodeNums, me->getEntity(), node_mapping);
+	uint32_t tmp_sz = apf::getElementNumbers(nodeNums, e, node_mapping);
 	assert((nnodes*2) == tmp_sz);
 	/*resize the vector to hold only the fixed dofs in this case is exactly
 	* nnodes*/
@@ -69,8 +74,9 @@ void zeroDisplacementY_2D(
 	assert(curs_indx == nnodes);
 }
 
-GeometryMappings::GeometryMappings()
+GeometryMappings::GeometryMappings(apf::Mesh *m)
 {
+	mesh = m;
 	neumann_map.clear();
 	dirchelet_map.clear();
 	/*we insert some simple boundary conditions*/
@@ -102,7 +108,8 @@ void GeometryMappings::addNeumannMapping(
 
 void GeometryMappings::addDircheletMapping(
 	uint64_t key,
-	void(*fnc_ptr)(apf::MeshElement* me,
+	void(*fnc_ptr)(apf::MeshEntity* e,
+					apf::Mesh*,
 					apf::Numbering* nodeNums,
 					std::vector< uint64_t > & nodes,
 					std::vector < double > & d))

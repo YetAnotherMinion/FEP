@@ -282,13 +282,11 @@ uint32_t ElasticAnalysis2D::makeConstraint(apf::MeshEntity* e)
 	{
 		// std::cout << "found key" << std::endl;
 		/*retrieve the specifc boundary contion from the store and evaluate it*/
-		void(*fnc_ptr)(apf::MeshElement*, apf::Numbering*, std::vector< uint64_t >&, std::vector < double > & );
+		void(*fnc_ptr)(apf::MeshEntity*, apf::Mesh*, apf::Numbering*, std::vector< uint64_t >&, std::vector < double > & );
 		fnc_ptr = this->geometry_map->dirchelet_map[tag_data];
 		std::vector< uint64_t > fixed_mapping(0);
 		std::vector< double > displacement(0);
-		apf::MeshElement* me = apf::createMeshElement(this->m, e);
-		fnc_ptr(me, this->nodeNums, fixed_mapping, displacement);
-		apf::destroyMeshElement(me);
+		fnc_ptr(e, this->m, this->nodeNums, fixed_mapping, displacement);
 
 		this->linsys->addBoundaryConstraint(displacement, fixed_mapping);
 		
