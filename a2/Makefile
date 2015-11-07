@@ -32,7 +32,7 @@ MPIFLAGS += -Wall -g -I $(IDIR) --pedantic-errors
 all: $(BDIR)/a2
 
 $(BDIR)/a2 : $(ODIR)/a2.o $(OBJ)
-	mpicxx $(CPPFLAGS) $(MPIFLAGS) $(PUMI_LIBS) $< -lmds -lapf -lgmi -lpcu -lpthread -o $@
+	mpicxx $(CPPFLAGS) $(MPIFLAGS) $(PUMI_LIBS) $< -lmds -lapf -lgmi -lpcu -llion -lmth -lpthread -o $@
 
 $(ODIR)/a2.o : $(SDIR)/a2.cc 
 	mpicxx $(CPPFLAGS) $(MPIFLAGS) $(PUMI_INC) -c $< -o $@ 

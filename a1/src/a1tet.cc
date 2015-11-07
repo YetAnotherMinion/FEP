@@ -7,6 +7,7 @@
 #include <apfShape.h>
 
 #include <stdio.h>
+#include <iostream>
 
 double computeTetVolume(const apf::Vector3 vec[]);
 

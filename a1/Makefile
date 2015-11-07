@@ -36,19 +36,19 @@ MPIFLAGS += -Wall -g -I $(IDIR) --pedantic-errors
 all: ./bin/a1tet ./bin/a1quad ./bin/a1mix
 
 $(BDIR)/a1tet : $(ODIR)/a1tet.o
-	mpicxx $(CPPFLAGS) $(MPIFLAGS) $(CXXFLAGS) $(LIBS) $(PUMI_LIBS) $< -lmds -lapf -lgmi -lpcu -lpthread -o $@ 
+	mpicxx $(CPPFLAGS) $(MPIFLAGS) $(CXXFLAGS) $(LIBS) $(PUMI_LIBS) $< -lmds -lapf -lgmi -lpcu -llion -lmth -lpthread -o $@ 
 
 $(ODIR)/a1tet.o : $(SDIR)/a1tet.cc 
 	mpicxx $(CPPFLAGS) $(MPIFLAGS) $(CXXFLAGS) $(PUMI_INC) -c $< -o $@ 
 
 $(BDIR)/a1quad : $(ODIR)/a1quad.o 
-	mpicxx $(CPPFLAGS) $(MPIFLAGS) $(CXXFLAGS) $(PUMI_LIBS) $< -lmds -lapf -lgmi -lpcu -lpthread -o $@ 
+	mpicxx $(CPPFLAGS) $(MPIFLAGS) $(CXXFLAGS) $(PUMI_LIBS) $< -lmds -lapf -lgmi -lpcu -llion -lmth -lpthread -o $@ 
 
 $(ODIR)/a1quad.o : $(SDIR)/a1quad.cc 
 	mpicxx $(CPPFLAGS) $(MPIFLAGS) $(CXXFLAGS) $(PUMI_INC) -c $< -o $@ 
 
 $(BDIR)/a1mix : $(ODIR)/a1mix.o
-	mpicxx $(CPPFLAGS) $(MPIFLAGS) $(CXXFLAGS) $(PUMI_LIBS) $< -lmds -lapf -lgmi -lpcu -lpthread -o $@ 
+	mpicxx $(CPPFLAGS) $(MPIFLAGS) $(CXXFLAGS) $(PUMI_LIBS) $< -lmds -lapf -lgmi -lpcu -llion -lmth -lpthread -o $@ 
 
 $(ODIR)/a1mix.o : $(SDIR)/a1mix.cc 
 	mpicxx $(CPPFLAGS) $(MPIFLAGS) $(CXXFLAGS) $(PUMI_INC) -c $< -o $@ 
