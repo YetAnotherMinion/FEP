@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include <apfMesh.h>
 
 #include "ForceContributor2D.h"
