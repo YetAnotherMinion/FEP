@@ -119,7 +119,8 @@ TEST_F(AlgebraicSystemTest, AssembleInsertionTest) {
 		MatGetRowUpperTriangular(linsys.K);
 		MatGetRow(linsys.K, row, &ncols, &cols, &vals);
 		/*cross check with the initial submatrix*/
-		for(std::size_t jj = 0; jj < ncols; ++jj) {
+		assert(ncols >= 0);
+		for(std::size_t jj = 0; jj < (std::size_t)ncols; ++jj) {
 			std::size_t kk = -1;
 			/*find the mapping for this column back to local
 			* this is done by looping over every mapping until we find it
@@ -130,7 +131,7 @@ TEST_F(AlgebraicSystemTest, AssembleInsertionTest) {
 					break; /*stop once we have found a mapping*/
 				}
 			}
-			if(kk != -1) {
+			if(kk != (std::size_t)-1) {
 				EXPECT_TRUE(kk < ke_1_size);
 				EXPECT_TRUE(ii < ke_1_size);
 				/*the expected value is nReps times the local matrix*/
@@ -177,7 +178,8 @@ TEST_F(AlgebraicSystemTest, IgnoreLowerDiagonals) {
 		MatGetRowUpperTriangular(linsys.K);
 		MatGetRow(linsys.K, row, &ncols, &cols, &vals);
 		/*cross check with the initial submatrix*/
-		for(std::size_t jj = 0; jj < ncols; ++jj) {
+		assert(ncols >= 0);
+		for(std::size_t jj = 0; jj < (std::size_t)ncols; ++jj) {
 			std::size_t kk = -1;
 			/*find the mapping for this column back to local
 			* this is done by looping over every mapping until we find it
@@ -188,7 +190,7 @@ TEST_F(AlgebraicSystemTest, IgnoreLowerDiagonals) {
 					break; /*stop once we have found a mapping*/
 				}
 			}
-			if(kk != -1) {
+			if(kk != (std::size_t)-1) {
 				EXPECT_TRUE(kk < ke_2_size);
 				EXPECT_TRUE(ii < ke_2_size);
 				/*only test when */
@@ -411,18 +413,27 @@ protected:
 		/*setup the petsc versions of the marix*/
 		PetscErrorCode ierr;
 		ierr = VecCreateMPI(PETSC_COMM_WORLD, MATRIX_SIZE, MATRIX_SIZE, &(this->bb));
+		EXPECT_EQ(ierr, 0);
 		ierr = VecSetOption(this->bb, VEC_IGNORE_NEGATIVE_INDICES, PETSC_TRUE);
+		EXPECT_EQ(ierr, 0);
 		ierr = MatCreateSBAIJ(PETSC_COMM_WORLD, 1, MATRIX_SIZE, MATRIX_SIZE, MATRIX_SIZE, MATRIX_SIZE,
 			300, PETSC_NULL, 300, PETSC_NULL, &(this->AA));
+		EXPECT_EQ(ierr, 0);
 		ierr = MatSetOption(this->AA, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_FALSE);
+		EXPECT_EQ(ierr, 0);
 		ierr = MatSetOption(this->AA, MAT_SYMMETRIC, PETSC_TRUE);
+		EXPECT_EQ(ierr, 0);
 		/*this part will ignore any insertions in the lower triangular, solving
 		* all of my problems and making the assembly code 10x less complex */
 		ierr = MatSetOption(this->AA, MAT_IGNORE_LOWER_TRIANGULAR, PETSC_TRUE);
+		EXPECT_EQ(ierr, 0);
 		ierr = KSPCreate(PETSC_COMM_WORLD, &(this->solver));
+		EXPECT_EQ(ierr, 0);
 		ierr = KSPSetTolerances(this->solver, 1.0e-8, 1e-8,
 			PETSC_DEFAULT, 100);
+		EXPECT_EQ(ierr, 0);
 		ierr = VecDuplicate(this->bb, &(this->xx));
+		EXPECT_EQ(ierr, 0);
 	}
 
 	virtual void TearDown() {
@@ -444,14 +455,21 @@ TEST_F(MatrixMathTest, SolverTest) {
 	VecSetValues(this->bb, nrows, this->rows, this->b, ADD_VALUES);
 
 	ierr = VecAssemblyBegin(this->bb);
+	EXPECT_EQ(ierr, 0);
   	ierr = VecAssemblyEnd(this->bb);
+  	EXPECT_EQ(ierr, 0);
   	ierr = MatAssemblyBegin(this->AA, MAT_FINAL_ASSEMBLY);
+  	EXPECT_EQ(ierr, 0);
   	ierr = MatAssemblyEnd(this->AA, MAT_FINAL_ASSEMBLY);
+  	EXPECT_EQ(ierr, 0);
 
   	/*solve the matrix*/
   	ierr = KSPSetOperators(this->solver, this->AA, this->AA);
+  	EXPECT_EQ(ierr, 0);
   	ierr = KSPSetFromOptions(this->solver);
+  	EXPECT_EQ(ierr, 0);
   	ierr = KSPSolve(this->solver, this->bb, this->xx);
+  	EXPECT_EQ(ierr, 0);
 
 
   	PetscScalar out_x[MATRIX_SIZE];
