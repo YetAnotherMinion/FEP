@@ -176,19 +176,27 @@ void AlgebraicSystem::beginAssembly() {
 	* the same as the global size.*/
 	PetscErrorCode ierr;
 	ierr = VecCreateMPI(PETSC_COMM_WORLD, n_eq, n_eq, &(this->F));
+	assert(0 == ierr);
 	ierr = VecSetOption(this->F, VEC_IGNORE_NEGATIVE_INDICES, PETSC_TRUE);
-
+	assert(0 == ierr);
 	ierr = MatCreateSBAIJ(PETSC_COMM_WORLD, 1, n_eq, n_eq, n_eq, n_eq,
 		300, PETSC_NULL, 300, PETSC_NULL, &(this->K));
+	assert(0 == ierr);
 	ierr = MatSetOption(this->K, MAT_NEW_NONZERO_ALLOCATION_ERR, PETSC_FALSE);
+	assert(0 == ierr);
 	ierr = MatSetOption(this->K, MAT_SYMMETRIC, PETSC_TRUE);
+	assert(0 == ierr);
 	/*this part will ignore any insertions in the lower triangular, solving
 	* all of my problems and making the assembly code 10x less complex */
 	ierr = MatSetOption(this->K, MAT_IGNORE_LOWER_TRIANGULAR, PETSC_TRUE);
+	assert(0 == ierr);
 	ierr = KSPCreate(PETSC_COMM_WORLD, &(this->solver));
+	assert(0 == ierr);
 	ierr = KSPSetTolerances(this->solver, 1.0e-10, SOLVER_ABSOLUTE_TOLERANCE,
 		PETSC_DEFAULT, 100);
+	assert(0 == ierr);
 	ierr = VecDuplicate(this->F, &(this->d));
+	assert(0 == ierr);
 }
 
 void AlgebraicSystem::assemble(
@@ -312,10 +320,11 @@ void AlgebraicSystem::assemble(
 			++ni;
 		}
 	}
-	assert(idxM_size == keep_rows.size());
-	assert(idxN_size == keep_cols.size());
-	assert(ni == local_displacements.size());
-	assert(ni == add_to_f_col.size());
+	/*each of the PetscInt's will be larger than zero*/
+	assert(static_cast<uint64_t>(idxM_size) == keep_rows.size());
+	assert(static_cast<uint64_t>(idxN_size) == keep_cols.size());
+	assert(static_cast<uint64_t>(ni) == local_displacements.size());
+	assert(static_cast<uint64_t>(ni) == add_to_f_col.size());
 	/*here is where we roll back any marked valid rows if in fact
 	* non contribute, aka when keep_cols.size == 0*/
 	if(0 == keep_cols.size()){
@@ -450,7 +459,7 @@ PetscErrorCode AlgebraicSystem::synchronize()
 			curs_indx++;
 		}
 	}
-	assert(curs_indx == numRows);
+	assert(curs_indx == static_cast<uint64_t>(numRows));
 
 	ierr = VecAssemblyBegin(this->F);
   	CHKERRQ(ierr);

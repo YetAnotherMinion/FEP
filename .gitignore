@@ -1,6 +1,7 @@
 run.sh
 build.sh
 sync.sh
+lib/
 
 UserStore
 
