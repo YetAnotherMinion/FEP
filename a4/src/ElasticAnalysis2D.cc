@@ -48,18 +48,16 @@ ElasticAnalysis2D::ElasticAnalysis2D(struct ElasticAnalysisInput & in) :
 	/*we create a 3 dimensional field but only will use 2 dimensions of that, (x & y)*/
 	this->field = createField(this->m, "dummyField", apf::VECTOR, this->m->getShape());
 	apf::zeroField(this->field);
-	printf("field = %p\n", this->field);
 
 	/*thisfield will store the resulting displacments*/
 	this->disp_field = apf::createFieldOn(this->m, DISPLACEMENT_FIELD_NAME, apf::VECTOR);
 	apf::zeroField(this->disp_field);
-	printf("disp_field = %p\n", this->disp_field);
 
-	// this->strain_field = apf::createField(this->m, STRAIN_FIELD_NAME, apf::VECTOR, apf::getIPShape(this->m->getDimension(), this->integration_order));
-	// apf::zeroField(this->strain_field);
+	this->strain_field = apf::createField(this->m, STRAIN_FIELD_NAME, apf::VECTOR, apf::getIPShape(this->m->getDimension(), this->integration_order));
+	apf::zeroField(this->strain_field);
 
-	// this->stress_field = createField(this->m, STRESS_FIELD_NAME, apf::VECTOR, apf::getIPShape(this->m->getDimension(), this->integration_order));
-	// apf::zeroField(this->stress_field);
+	this->stress_field = createField(this->m, STRESS_FIELD_NAME, apf::VECTOR, apf::getIPShape(this->m->getDimension(), this->integration_order));
+	apf::zeroField(this->stress_field);
 
 	bool use_plane_stress = true;
 	this->D = buildD(in.E, in.Nu, use_plane_stress);
@@ -183,15 +181,16 @@ uint32_t ElasticAnalysis2D::makeStiffnessContributor(apf::MeshEntity* e)
 		uint32_t n_l_dofs = apf::countElementNodes(this->m->getShape(), entity_type) * NUM_COMPONENTS;
 		apf::NewArray< int > node_mapping(n_l_dofs);
 		int tmp_sz = apf::getElementNumbers(this->nodeNums, e, node_mapping);
+		assert(tmp_sz >= 0);
 		/*we want to make sure that our guess for the vector was the right size
 		* so we know how many degress of freedom our nodes have*/
-		assert(tmp_sz == n_l_dofs);
+		assert((uint32_t)tmp_sz == n_l_dofs);
 
-		std::cout << stiff.ke << std::endl;
-		std::cout << "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@" << std::endl;
+		// std::cout << stiff.ke << std::endl;
+		// std::cout << "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@" << std::endl;
 
 		this->linsys->assemble(stiff.ke, node_mapping, tmp_sz);
-		std::cout << "---------------------------------" << std::endl;
+		// std::cout << "---------------------------------" << std::endl;
 
 	} else {
 		/*only accepts faces, so indicate improper input*/
@@ -247,7 +246,8 @@ uint32_t ElasticAnalysis2D::makeForceContributor(apf::MeshEntity* e)
 		uint32_t n_l_dofs = apf::countElementNodes(this->m->getShape(), entity_type) * NUM_COMPONENTS;
 		apf::NewArray< int > node_mapping(n_l_dofs);
 		int tmp_sz = apf::getElementNumbers(this->nodeNums, e, node_mapping);
-		assert(tmp_sz == n_l_dofs);
+		assert(tmp_sz >= 0);
+		assert((uint32_t)tmp_sz == n_l_dofs);
 		this->linsys->assemble(force.fe, node_mapping, tmp_sz);
 	}
 	return 0;
@@ -322,9 +322,16 @@ uint32_t ElasticAnalysis2D::recover()
 			it = this->m->begin(dim);
 			while((e = this->m->iterate(it))) {
 				int entity_type = this->m->getType(e);
-				for(std::size_t ii = 0; ii < apf::countElementNodes(fs, entity_type); ++ii) {
+				int n_elm_nodes = apf::countElementNodes(fs, entity_type);
+				assert (n_elm_nodes >= 0);
+				for(std::size_t ii = 0; ii < static_cast<std::size_t>(n_elm_nodes); ++ii) {
 					/*get each component*/
 					for(std::size_t jj = 0; jj < NUM_COMPONENTS; ++jj) {
+						if(apf::isNumbered(this->nodeNums, e, ii, jj)) {
+							std::cout << "isNumbered" << std::endl;
+						} else {
+							std::cout << "Not Numbered" << std::endl;
+						}
 						uint64_t gdof_indx = apf::getNumber(this->nodeNums, e, ii, jj);
 						tmp_arry[jj] = this->displacement[gdof_indx];
 					}

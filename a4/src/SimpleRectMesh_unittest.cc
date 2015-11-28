@@ -115,10 +115,10 @@ TEST_P(RectMeshTest, CheckBoundaryEdgeTags) {
 	apf::MeshIterator* it;
 	apf::MeshEntity* e;
 	/*generate sets of the node numberings for the linear specific_mesh*/
-	std::set<int> left_edge;
-	std::set<int> right_edge;
-	std::set<int> top_edge;
-	std::set<int> bot_edge;
+	std::set<int32_t> left_edge;
+	std::set<int32_t> right_edge;
+	std::set<int32_t> top_edge;
+	std::set<int32_t> bot_edge;
 	uint32_t counter_left_edge = 0;
 	uint32_t counter_right_edge = 0;
 	uint32_t counter_top_edge = 0;
@@ -154,7 +154,7 @@ TEST_P(RectMeshTest, CheckBoundaryEdgeTags) {
 			std::set<int> edge_verts;
 			edge_verts.clear();
 			assert(n_verts >= 0);
-			for(std::size_t ii = 0; ii < (uint32_t)n_verts; ++ii) {
+			for(std::size_t ii = 0; ii < static_cast<uint32_t>(n_verts); ++ii) {
 				/*create a set of the edge vertices, this
 				* really should only be two elements*/
 				edge_verts.insert(apf::getNumber(secret_numbering, down[ii], 0,0));
@@ -165,7 +165,7 @@ TEST_P(RectMeshTest, CheckBoundaryEdgeTags) {
 			set_intersection(left_edge.begin(), left_edge.end(), 
 				edge_verts.begin(), edge_verts.end(), 
 				std::inserter(intersect, intersect.begin()));
-			if(intersect.size() == (uint32_t)n_verts) {
+			if(intersect.size() == static_cast<uint32_t>(n_verts)) {
 				EXPECT_TRUE(specific_mesh->hasTag(e, edge_tag));
 				if(specific_mesh->hasTag(e, edge_tag)) {
 					specific_mesh->getIntTag(e, edge_tag, &data);
@@ -178,7 +178,7 @@ TEST_P(RectMeshTest, CheckBoundaryEdgeTags) {
 			set_intersection(right_edge.begin(), right_edge.end(), 
 				edge_verts.begin(), edge_verts.end(), 
 				std::inserter(intersect, intersect.begin()));
-			if(intersect.size() == (uint32_t)n_verts) {
+			if(intersect.size() == static_cast<uint32_t>(n_verts)) {
 				EXPECT_TRUE(specific_mesh->hasTag(e, edge_tag));
 				if(specific_mesh->hasTag(e, edge_tag)) {
 					specific_mesh->getIntTag(e, edge_tag, &data);
@@ -191,7 +191,7 @@ TEST_P(RectMeshTest, CheckBoundaryEdgeTags) {
 			set_intersection(bot_edge.begin(), bot_edge.end(), 
 				edge_verts.begin(), edge_verts.end(), 
 				std::inserter(intersect, intersect.begin()));
-			if(intersect.size() == (uint32_t)n_verts) {
+			if(intersect.size() == static_cast<uint32_t>(n_verts)) {
 				EXPECT_TRUE(specific_mesh->hasTag(e, edge_tag));
 				if(specific_mesh->hasTag(e, edge_tag)) {
 					specific_mesh->getIntTag(e, edge_tag, &data);
@@ -204,7 +204,7 @@ TEST_P(RectMeshTest, CheckBoundaryEdgeTags) {
 			set_intersection(top_edge.begin(), top_edge.end(), 
 				edge_verts.begin(), edge_verts.end(), 
 				std::inserter(intersect, intersect.begin()));
-			if(intersect.size() == (uint32_t)n_verts) {
+			if(intersect.size() == static_cast<uint32_t>(n_verts)) {
 				EXPECT_TRUE(specific_mesh->hasTag(e, edge_tag));
 				if(specific_mesh->hasTag(e, edge_tag)) {
 					specific_mesh->getIntTag(e, edge_tag, &data);

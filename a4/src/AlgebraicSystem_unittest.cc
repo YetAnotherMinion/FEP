@@ -120,7 +120,7 @@ TEST_F(AlgebraicSystemTest, AssembleInsertionTest) {
 		MatGetRow(linsys.K, row, &ncols, &cols, &vals);
 		/*cross check with the initial submatrix*/
 		assert(ncols >= 0);
-		for(std::size_t jj = 0; jj < (std::size_t)ncols; ++jj) {
+		for(std::size_t jj = 0; jj < static_cast<std::size_t>(ncols); ++jj) {
 			std::size_t kk = -1;
 			/*find the mapping for this column back to local
 			* this is done by looping over every mapping until we find it
@@ -131,7 +131,7 @@ TEST_F(AlgebraicSystemTest, AssembleInsertionTest) {
 					break; /*stop once we have found a mapping*/
 				}
 			}
-			if(kk != (std::size_t)-1) {
+			if(kk != static_cast<std::size_t>(-1)) {
 				EXPECT_TRUE(kk < ke_1_size);
 				EXPECT_TRUE(ii < ke_1_size);
 				/*the expected value is nReps times the local matrix*/
@@ -179,7 +179,7 @@ TEST_F(AlgebraicSystemTest, IgnoreLowerDiagonals) {
 		MatGetRow(linsys.K, row, &ncols, &cols, &vals);
 		/*cross check with the initial submatrix*/
 		assert(ncols >= 0);
-		for(std::size_t jj = 0; jj < (std::size_t)ncols; ++jj) {
+		for(std::size_t jj = 0; jj < static_cast<std::size_t>(ncols); ++jj) {
 			std::size_t kk = -1;
 			/*find the mapping for this column back to local
 			* this is done by looping over every mapping until we find it
@@ -190,7 +190,7 @@ TEST_F(AlgebraicSystemTest, IgnoreLowerDiagonals) {
 					break; /*stop once we have found a mapping*/
 				}
 			}
-			if(kk != (std::size_t)-1) {
+			if(kk != static_cast<std::size_t>(-1)) {
 				EXPECT_TRUE(kk < ke_2_size);
 				EXPECT_TRUE(ii < ke_2_size);
 				/*only test when */
