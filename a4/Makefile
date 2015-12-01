@@ -175,7 +175,7 @@ $(BDIR)/a4 : 	$(ODIR)/a4.o $(ODIR)/MeshBuilder.o $(ODIR)/MeshBuilder_unittest.o 
 				$(ODIR)/GeometryMappings_unittest.o \
 				$(ODIR)/StiffnessContributor2D_unittest.o \
 				$(LDIR)/gtest.a 				
-	mpicxx $(CPPFLAGS) $(CXXFLAGS) $(PUMI_INC) $(PUMI_LIBS) $^ -lpetsc -lmds -lapf -lgmi -lpcu -llion -lmth -lpthread  -o $@
+	mpicxx $(CPPFLAGS) $(CXXFLAGS) $(PETSC_LIB) $(PUMI_LIBS) $^ -lpetsc -lmds -lapf -lgmi -lpcu -llion -lmth -lpthread  -o $@
 
 #===============================================
 
