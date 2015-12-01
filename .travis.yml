@@ -58,23 +58,24 @@ install:
   - make PETSC_DIR=/tmp/petsc PETSC_ARCH=linux-mpich all
   - make PETSC_DIR=/tmp/petsc PETSC_ARCH=linux-mpich install # install the libraries
   - make PETSC_DIR=/tmp/packages/petsc-3.6.1 PETSC_ARCH="" test # test the installed library
-
-
-#create the bin directories
-before_script:
   - cd $MAIN_DIR
+  #create the bin directories
   - touch travis_config.mk
   - echo -e 'ifeq ($(CC), gcc)\n\tMPIFLAGS+=--std=c++0x -Wno-long-long\nelse\n\tMPIFLAGS+=-Wno-c++11-long-long\nendif\nPETSC_DIR=/tmp/packages/petsc-3.6.1\nLDIR=$(MAIN_DIR)/lib\nPUMI_DIR=$(LDIR)/pumi\nGTEST_DIR=/tmp/googletest' > travis_config.mk
   - cat travis_config.mk | tee a1/config.mk a2/config.mk a3/config.mk a4/config.mk
   - MPIEXEC='mpiexec'
   - test $MPI == mpich2 && MPIEXEC='mpiexec -launcher fork' || true
   - mpiexec --version
-
-script: 
   - make -C a1
   - make -C a2
   - make -C a3
   - make -C a4
+
+before_script:
+
+script: 
+  - echo "run a script"
+  - mpirun /a4/bin/a4
 
 notifications:
   webhooks:
