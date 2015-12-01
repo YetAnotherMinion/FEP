@@ -2,6 +2,9 @@ run.sh
 build.sh
 sync.sh
 lib/
+mod_K.txt
+prev_K.txt
+new.geo
 
 UserStore
 

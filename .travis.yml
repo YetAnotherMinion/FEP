@@ -75,7 +75,8 @@ before_script:
 
 script: 
   - echo "run a script"
-  - mpirun /a4/bin/a4
+  #probably should use mpi run, however not worrying about it now
+  - ./a4/bin/a4
 
 notifications:
   webhooks:
