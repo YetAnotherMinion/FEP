@@ -8,14 +8,7 @@
 #include <apf.h>
 #include <apfMesh2.h>
 #include <apfMesh.h>
-#include <gmi_mesh.h>
-#include <gmi_null.h>
-#include <apfShape.h>
-#include <gmi_mesh.h>
-#include <gmi_null.h>
-#include <apfMDS.h>
 #include <PCU.h>
-#include <apfNumbering.h>
 
 #include "MeshBuilder.h"
 
@@ -31,9 +24,6 @@ int main(int argc, char *argv[])
 	apf::Mesh2* mesh = NULL;
 	MeshBuilder* mesh_builder = new MeshBuilder();
 	mesh_builder->buildBatmanElementMesh(mesh);
-
-	
-
 	std::cout << "end of my code" << std::endl;
 	usleep(1000000);
 
@@ -41,6 +31,5 @@ int main(int argc, char *argv[])
 
 	PCU_Comm_Free();
 	MPI_Finalize();
-
 	return 0;
 }
