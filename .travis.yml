@@ -72,10 +72,18 @@ install:
   - make -C a4
 
 before_script:
+  #currently the a1 code has hardcoded filenames, so we need to move the meshes
+  #into the correct directory
+  - cp /tmp/test_meshes/a1/cube.dmg ./a1/
+  - cp /tmp/test_meshes/a1/mixed-mesh-1.smb ./a1/
+  - cp /tmp/test_meshes/a1/tet-mesh-1.smb ./a1/
 
 script: 
-  - echo "run a script"
+  - mpirun
   #probably should use mpi run, however not worrying about it now
+  - mpirun ./a2/bin/a2 /tmp/test_meshes/reorder_a.dmg /tmp/test_meshes/reorder_a.smb
+  - mpirun ./a2/bin/a2 /tmp/test_meshes/reorder_b.dmg /tmp/test_meshes/reorder_b.smb
+  - mpirun ./a2/bin/a2 /tmp/test_meshes/reorder_c.dmg /tmp/test_meshes/reorder_c.smb
   - ./a4/bin/a4
 
 notifications:

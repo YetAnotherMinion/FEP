@@ -67,7 +67,7 @@ int main(int argc, char** argv)
   std::cout << node_label << std::endl;
   m->acceptChanges();
   m->verify();
-  apf::writeVtkFiles("pre_number", m);
+  apf::writeASCIIVtkFiles("pre_number", m);
   //clean up the previous numbering
   apf::destroyNumbering(elmNums);
   apf::destroyNumbering(all_node_nums);
@@ -213,7 +213,7 @@ int main(int argc, char** argv)
   //write out the finished mesh
   m->acceptChanges();
   m->verify();
-  apf::writeVtkFiles("number", m);
+  apf::writeASCIIVtkFiles("number", m);
   m->destroyNative();
   apf::destroyMesh(m);
   PCU_Comm_Free();

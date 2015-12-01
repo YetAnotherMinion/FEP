@@ -17,7 +17,7 @@ int main(int argc, char** argv)
   PCU_Comm_Init();
   gmi_register_mesh();
   apf::Mesh2* m = apf::loadMdsMesh("cube.dmg", "tet-mesh-1.smb");
-  apf::writeVtkFiles("beforeOutTet", m);
+  apf::writeASCIIVtkFiles("beforeOutTet", m);
   //
   // insert mesh query code here
   //
@@ -76,7 +76,7 @@ int main(int argc, char** argv)
   std::cout << std::endl;
   m->acceptChanges();
   m->verify();
-  apf::writeVtkFiles("afterOutTet", m);
+  apf::writeASCIIVtkFiles("afterOutTet", m);
   m->destroyNative();
   apf::destroyMesh(m);
   PCU_Comm_Free();

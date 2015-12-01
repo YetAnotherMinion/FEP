@@ -97,7 +97,7 @@ int main(int argc, char** argv)
     }
   }
   //Part 3
-  apf::writeVtkFiles("pre_migr", m);
+  apf::writeASCIIVtkFiles("pre_migr", m);
   //migration plan should exist for each process
   apf::Migration* plan = new apf::Migration(m);
   //get the mesh regions that are on boundary
@@ -139,7 +139,7 @@ int main(int argc, char** argv)
   }
   printf("Partition %d reports %d partition faces after migration\n", \
    PCU_Comm_Self() , aftr_partition_face_cnt);
-  apf::writeVtkFiles("post_migr", m); 
+  apf::writeASCIIVtkFiles("post_migr", m); 
   m->destroyNative();
   apf::destroyMesh(m);
   PCU_Comm_Free();

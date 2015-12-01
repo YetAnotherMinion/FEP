@@ -59,7 +59,7 @@ int main(int argc, char** argv)
   }
   m->end(it);
 
-  apf::writeVtkFiles("outMixed", m);
+  apf::writeASCIIVtkFiles("outMixed", m);
   m->destroyNative();
   apf::destroyMesh(m);
   PCU_Comm_Free();

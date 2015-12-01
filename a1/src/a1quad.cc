@@ -110,7 +110,7 @@ int main(int argc, char** argv)
   }
   m->end(it);
   //provided: after this should not change
-  apf::writeVtkFiles("outQuad", m);
+  apf::writeASCIIVtkFiles("outQuad", m);
   m->destroyNative();
   apf::destroyMesh(m);
   PCU_Comm_Free();
