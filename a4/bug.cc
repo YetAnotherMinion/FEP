@@ -30,14 +30,14 @@ int main(int argc, char *argv[])
 
 	apf::Mesh2* mesh = NULL;
 	MeshBuilder* mesh_builder = new MeshBuilder();
-	mesh_builder->build2DRectTriMesh(mesh, 2, 1, 0, 0, 1, 1);
+	mesh_builder->buildBatmanElementMesh(mesh);
 
 	
 
 	std::cout << "end of my code" << std::endl;
 	usleep(1000000);
 
-	apf::writeVtkFiles("tri_test", mesh);
+	apf::writeASCIIVtkFiles("batman", mesh);
 
 	PCU_Comm_Free();
 	MPI_Finalize();

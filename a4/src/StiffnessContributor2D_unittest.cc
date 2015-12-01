@@ -325,5 +325,5 @@ TEST_F(StiffnessTest, ScratchPad) {
 		EXPECT_FLOAT_EQ(2.0, tmp_grad[0]);
 		EXPECT_FLOAT_EQ(5.0, tmp_grad[1]);
 	} 
-	apf::writeVtkFiles("batman_elm", m);
+	apf::writeASCIIVtkFiles("batman_elm", m);
 }

@@ -56,7 +56,7 @@ TEST_F(ElasticAnalysisTest, AppRunTest) {
 	// mesh_builder->build2DRectTriMesh(this->mesh, 4, 2, 0.0, 0.0, 2.0, 1.0);
 	EXPECT_TRUE(this->mesh != NULL);
 	//apf::changeMeshShape(mesh, apf::getSerendipity());
-	apf::changeMeshShape(this->mesh, apf::getLagrange(2));
+	apf::changeMeshShape(this->mesh, apf::getLagrange(1));
 	/*physical parameters*/
 	double E, Nu;
 	E = YOUNGS_MODULUS;
@@ -100,13 +100,13 @@ TEST_F(ElasticAnalysisTest, AppRunTest) {
 	EXPECT_EQ(0, tmp.solve());
 	// VecView(tmp.linsys->d, PETSC_VIEWER_STDOUT_WORLD);
 
-	// EXPECT_EQ(0, tmp.recover());
-	// std::cout << "=========== Solution ============" << std::endl;
-	// for(std::size_t ii = 0; ii < tmp.displacement.size(); ++ii) {
-	// 	std::cout << "d_" << ii << " = " << (tmp.displacement[ii]) << std::endl;
-	// }
+	EXPECT_EQ(0, tmp.recover());
+	std::cout << "=========== Solution ============" << std::endl;
+	for(std::size_t ii = 0; ii < tmp.displacement.size(); ++ii) {
+		std::cout << "d_" << ii << " = " << (tmp.displacement[ii]) << std::endl;
+	}
 	
-	apf::writeVtkFiles("solution_mesh", this->mesh);
+	apf::writeASCIIVtkFiles("solution_mesh", this->mesh);
 	delete geo_map;
 }
 

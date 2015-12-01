@@ -88,10 +88,10 @@ TEST_F(RectMeshTest, Rectangle) {
 
 TEST_F(RectMeshTest, Triangle) {
 	mesh_builder->build2DRectTriMesh(mesh, 2, 1, 0, 0, 2, 1);
-	//apf::writeVtkFiles("outTri", mesh);
+	//apf::writeASCIIVtkFiles("outTri", mesh);
 	apf::changeMeshShape(mesh, apf::getLagrange(2));
 	//apf::changeMeshShape(mesh, apf::getSerendipity());
-	apf::writeVtkFiles("secondTri", mesh);
+	apf::writeASCIIVtkFiles("secondTri", mesh);
 }
 
 
