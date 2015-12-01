@@ -92,9 +92,9 @@ script:
   - mpirun ./bin/a1mix
   - cd ..
   #probably should use mpi run, however not worrying about it now
-  - mpirun ./a2/bin/a2 /tmp/test_meshes/reorder_a.dmg /tmp/test_meshes/reorder_a.smb
-  - mpirun ./a2/bin/a2 /tmp/test_meshes/reorder_b.dmg /tmp/test_meshes/reorder_b.smb
-  - mpirun ./a2/bin/a2 /tmp/test_meshes/reorder_c.dmg /tmp/test_meshes/reorder_c.smb
+  - mpirun ./a2/bin/a2 /tmp/test_meshes/a2/reorder_a.dmg /tmp/test_meshes/a2/reorder_a.smb
+  - mpirun ./a2/bin/a2 /tmp/test_meshes/a2/reorder_b.dmg /tmp/test_meshes/a2/reorder_b.smb
+  - mpirun ./a2/bin/a2 /tmp/test_meshes/a2/reorder_c.dmg /tmp/test_meshes/a2/reorder_c.smb
   - ./a4/bin/a4
 
 notifications:
