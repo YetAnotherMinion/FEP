@@ -58,7 +58,12 @@ install:
   - make PETSC_DIR=/tmp/petsc PETSC_ARCH=linux-mpich all
   - make PETSC_DIR=/tmp/petsc PETSC_ARCH=linux-mpich install # install the libraries
   - make PETSC_DIR=/tmp/packages/petsc-3.6.1 PETSC_ARCH="" test # test the installed library
+  # a better method would be to permantly add this to /etc/ld.so.conf
+  # however in this container we do not have sudo, so make do with library path
+  #   include ld.so.conf.d/*.conf
+  #   /tmp/packages/petsc-3.6.1/lib
   - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/tmp/packages/petsc-3.6.1/lib
+  - echo $LD_LIBRARY_PATH
   - cd $MAIN_DIR
   #create the bin directories
   - touch travis_config.mk
@@ -76,8 +81,8 @@ before_script:
   #currently the a1 code has hardcoded filenames, so we need to move the meshes
   #into the correct directory
   - cp /tmp/test_meshes/a1/cube.dmg ./a1/
-  - cp /tmp/test_meshes/a1/mixed-mesh-1.smb ./a1/
-  - cp /tmp/test_meshes/a1/tet-mesh-1.smb ./a1/
+  - cp /tmp/test_meshes/a1/mixed-mesh-10.smb ./a1/
+  - cp /tmp/test_meshes/a1/tet-mesh-10.smb ./a1/
 
 script: 
   - mpirun ./a1/bin/a1tet
