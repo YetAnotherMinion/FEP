@@ -84,10 +84,13 @@ before_script:
   - cp /tmp/test_meshes/a1/mixed-mesh-10.smb ./a1/
   - cp /tmp/test_meshes/a1/tet-mesh-10.smb ./a1/
 
-script: 
-  - mpirun ./a1/bin/a1tet
-  - mpirun ./a1/bin/a1quad
-  - mpirun ./a1/bin/a1mix
+script:
+  #because of hardcoded file paths, must be in a1 directory
+  - cd a1
+  - mpirun ./bin/a1tet
+  - mpirun ./bin/a1quad
+  - mpirun ./bin/a1mix
+  - cd ..
   #probably should use mpi run, however not worrying about it now
   - mpirun ./a2/bin/a2 /tmp/test_meshes/reorder_a.dmg /tmp/test_meshes/reorder_a.smb
   - mpirun ./a2/bin/a2 /tmp/test_meshes/reorder_b.dmg /tmp/test_meshes/reorder_b.smb
