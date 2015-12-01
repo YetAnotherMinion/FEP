@@ -58,6 +58,7 @@ install:
   - make PETSC_DIR=/tmp/petsc PETSC_ARCH=linux-mpich all
   - make PETSC_DIR=/tmp/petsc PETSC_ARCH=linux-mpich install # install the libraries
   - make PETSC_DIR=/tmp/packages/petsc-3.6.1 PETSC_ARCH="" test # test the installed library
+  - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/tmp/packages/petsc-3.6.1/lib
   - cd $MAIN_DIR
   #create the bin directories
   - touch travis_config.mk
@@ -79,7 +80,9 @@ before_script:
   - cp /tmp/test_meshes/a1/tet-mesh-1.smb ./a1/
 
 script: 
-  - mpirun
+  - mpirun ./a1/bin/a1tet
+  - mpirun ./a1/bin/a1quad
+  - mpirun ./a1/bin/a1mix
   #probably should use mpi run, however not worrying about it now
   - mpirun ./a2/bin/a2 /tmp/test_meshes/reorder_a.dmg /tmp/test_meshes/reorder_a.smb
   - mpirun ./a2/bin/a2 /tmp/test_meshes/reorder_b.dmg /tmp/test_meshes/reorder_b.smb
