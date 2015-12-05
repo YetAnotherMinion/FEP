@@ -10,6 +10,7 @@
 #include <assert.h>
 
 #include <PCU.h>
+#include <apf.h>
 
 #define NUM_COMPONENTS 2
 
@@ -72,6 +73,7 @@ ElasticAnalysis2D::ElasticAnalysis2D(struct ElasticAnalysisInput & in) :
 	std::size_t n_global_dofs = apf::countNodes(this->nodeNums) * NUM_COMPONENTS;
 	/*initialize the linear system*/
 	this->linsys = new AlgebraicSystem(n_global_dofs);
+	this->nGlobalDOFs = n_global_dofs;
 }
 
 ElasticAnalysis2D::~ElasticAnalysis2D()
@@ -303,6 +305,7 @@ uint32_t ElasticAnalysis2D::recover()
 	this->stress.clear();
 
 	this->linsys->extractDisplacement(this->displacement);
+	assert(this->displacement.size() == this->nGlobalDOFs);
 	/*set the values of the solution field by iterating over the
 	* faces. We will overwrite values several times by this method
 	* but we consider the loss of efficiency acceptable to avoid
@@ -316,28 +319,34 @@ uint32_t ElasticAnalysis2D::recover()
 	assert(NUM_COMPONENTS <= 3);
 	apf::FieldShape* fs = apf::getShape(this->disp_field);
 
+	int components = apf::countComponents(this->disp_field);
+	std::cout << "Number of components: " << components << std::endl;
+
 
 	for(std::size_t dim = 0; dim <= 2; ++dim) {
 		if(fs->hasNodesIn(dim)) {
 			it = this->m->begin(dim);
 			while((e = this->m->iterate(it))) {
 				int entity_type = this->m->getType(e);
-				std::cout << "entity type is " << entity_type << std::endl;
-				int n_elm_nodes = apf::countElementNodes(fs, entity_type);
-				std::cout << "Dim: "<<  dim << " There are N=" << n_elm_nodes << " nodes" << std::endl;
+				// std::cout << "entity type is " << entity_type << std::endl;
+				int n_elm_nodes = fs->countNodesOn(entity_type);
+				// std::cout << "Dim: "<<  dim << " There are N=" << n_elm_nodes << " nodes" << std::endl;
 				assert (n_elm_nodes >= 0);
 				for(std::size_t ii = 0; ii < static_cast<std::size_t>(n_elm_nodes); ++ii) {
 					/*get each component*/
 					for(std::size_t jj = 0; jj < NUM_COMPONENTS; ++jj) {
-						// if(apf::isNumbered(this->nodeNums, e, ii, jj)) {
-						// 	std::cout << "isNumbered" << std::endl;
-						// 	uint64_t gdof_indx = apf::getNumber(this->nodeNums, e, ii, jj);
-						// 	tmp_arry[jj] = this->displacement[gdof_indx];
-						// } else {
-						// 	std::cout << "Not Numbered" << std::endl;
+						if(apf::isNumbered(this->nodeNums, e, ii, jj)) {
+						 	std::cout << "isNumbered" << std::endl;
+						 	uint64_t gdof_indx = apf::getNumber(this->nodeNums, e, ii, jj);
+						 	std::cout << gdof_indx << std::endl;
+						 	assert(0 <= gdof_indx);
+						 	assert(this->nGlobalDOFs > gdof_indx);
+						 	tmp_arry[jj] = this->displacement[gdof_indx];
+						} else {
+						 	std::cout << "Not Numbered" << std::endl;
 						// 	std::cout << "dim = " << dim << " elm_node_num = " << ii
 						// 		<< " component = " << jj << std::endl;
-						// }
+						}
 						
 					}
 					// apf::Vector3 tmp_vec(tmp_arry);

@@ -56,6 +56,7 @@ private:
 	apf::Matrix< 3,3> D;
 	apf::Numbering* nodeNums;
 	apf::Numbering* faceNums;
+	std::size_t nGlobalDOFs;
 
 };
 
