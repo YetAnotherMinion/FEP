@@ -336,22 +336,17 @@ uint32_t ElasticAnalysis2D::recover()
 					/*get each component*/
 					for(std::size_t jj = 0; jj < NUM_COMPONENTS; ++jj) {
 						if(apf::isNumbered(this->nodeNums, e, ii, jj)) {
-						 	std::cout << "isNumbered" << std::endl;
-						 	uint64_t gdof_indx = apf::getNumber(this->nodeNums, e, ii, jj);
-						 	std::cout << gdof_indx << std::endl;
-						 	assert(0 <= gdof_indx);
-						 	assert(this->nGlobalDOFs > gdof_indx);
-						 	tmp_arry[jj] = this->displacement[gdof_indx];
+							uint64_t gdof_indx = apf::getNumber(this->nodeNums, e, ii, jj);
+							assert(0 <= gdof_indx);
+							assert(this->nGlobalDOFs > gdof_indx);
+							tmp_arry[jj] = this->displacement[gdof_indx];
 						} else {
-						 	std::cout << "Not Numbered" << std::endl;
-						// 	std::cout << "dim = " << dim << " elm_node_num = " << ii
-						// 		<< " component = " << jj << std::endl;
+							throw std::runtime_error("Node not numbered");
 						}
 						
 					}
-					// apf::Vector3 tmp_vec(tmp_arry);
-					//  std::cout << "setting: " << tmp_vec << std::endl;
-					// // apf::setVector(this->disp_field, e, ii, tmp_vec);
+					apf::Vector3 tmp_vec(tmp_arry);
+					apf::setVector(this->disp_field, e, ii, tmp_vec);
 				}
 			}
 			this->m->end(it);

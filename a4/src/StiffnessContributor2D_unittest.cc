@@ -263,6 +263,11 @@ TEST_F(StiffnessTest, IdenticalElement) {
 	/*We create two quadratic elements of the same size, only
 	* difference is their location in global coordinates,
 	* Both element stiffness matrices should be identical*/
+	mesh_builder->build2DRectQuadMesh(this->mesh, 2, 1, 0.0, 0.0, 2.0, 1.0);
+	// mesh_builder->build2DRectTriMesh(this->mesh, 4, 2, 0.0, 0.0, 2.0, 1.0);
+	EXPECT_TRUE(this->mesh != NULL);
+	//apf::changeMeshShape(mesh, apf::getSerendipity());
+	apf::changeMeshShape(this->mesh, apf::getLagrange(2));
 
 }
 

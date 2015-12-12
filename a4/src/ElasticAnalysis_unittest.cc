@@ -43,7 +43,7 @@ protected:
 
 apf::Vector3 LinearLoad_X(apf::Vector3 const & p)
 {
-	return apf::Vector3(-1000.0, 0, 0);
+	return apf::Vector3(1000.0, 0, 0);
 }
 
 apf::Vector3 LinearLoad_Y(apf::Vector3 const & p) 
@@ -60,8 +60,8 @@ TEST_F(ElasticAnalysisTest, AppRunTest) {
 	/*physical parameters*/
 	double E, Nu;
 	E = YOUNGS_MODULUS;
-	// Nu = POISSONS_RATIO;
-	Nu = 0.0;
+	Nu = POISSONS_RATIO;
+	//Nu = 0.0;
 	uint32_t integration_order = 4;
 	bool reorder_flag = true;
 	/*Fix the bottom edge in the Y direction only, and the
@@ -71,6 +71,7 @@ TEST_F(ElasticAnalysisTest, AppRunTest) {
 	cnstr_ptr = &zeroDisplacementX_2D;
 	geo_map->addDircheletMapping(LEFT_EDGE, cnstr_ptr);
 	cnstr_ptr = &zeroDisplacementY_2D;
+	//geo_map->addDircheletMapping(LEFT_EDGE, cnstr_ptr);
 	geo_map->addDircheletMapping(TOP_EDGE, cnstr_ptr);
 	//geo_map->addDircheletMapping(BOT_EDGE, cnstr_ptr);
 

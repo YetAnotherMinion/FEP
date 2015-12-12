@@ -13,6 +13,7 @@
 * IN PRODCUTION change this number so buffer size is close 
 * to 1/4 size of cache*/
 #define COPY_CHUNK_SIZE 100
+#define DEBUG_PRINT 0
 
 AlgebraicSystem::AlgebraicSystem(std::size_t ngd)
 	: nGlobalDOFs(ngd)
@@ -123,13 +124,17 @@ void AlgebraicSystem::addBoundaryConstraint(
 		if(this->masks[key] != UNMAPPED_VALUE) {
 			/*find the index in known_d*/
 			uint32_t tmp_indx = (this->masks[key] & SAMPLE_LOW_32_BITS);
-			std::cout << "key: " << tmp_indx << " already written, !!OVERWRITING" << std::endl;
+			#if DEBUG_PRINT
+				std::cout << "key: " << tmp_indx << " already written, !!OVERWRITING" << std::endl;
+			#endif
 			this->known_d[tmp_indx] = fixed[ii];
 
 		} else {
 			/*look up key an convert it */
 			this->masks[key] = cur_ndogs | (KNOWN_DOF_MASK);
-			printf("key %lx \n", this->masks[key]);
+			#if DEBUG_PRINT
+				printf("key %lx \n", this->masks[key]);
+			#endif
 			++cur_ndogs;
 			/*add the proscribed displacements to our known_d(isplacement) store*/
 			this->known_d.push_back(fixed[ii]);
