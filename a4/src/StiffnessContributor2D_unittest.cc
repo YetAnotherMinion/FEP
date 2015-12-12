@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <iomanip>
 #include <cmath>
+#include <stdexcept> /*provides runtime error*/
 
 #include <gtest/gtest.h>
 
