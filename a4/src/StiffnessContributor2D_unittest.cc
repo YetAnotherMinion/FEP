@@ -92,7 +92,6 @@ protected:
 		this->E = 1e8;
 		this->Nu = 0.35;
 		this->integration_order = 4;
-		struct test_parameters_wrapper tmp_foo(LINEAR_QUAD, 7);
 	}
 
 	virtual void TearDown() {
@@ -259,65 +258,154 @@ TEST_P(StiffnessTest, CheckStiffnessMatrix) {
 	this->mesh->end(it);
 }
 
-TEST_F(StiffnessTest, IdenticalLinearElement) {
-	this->mesh_builder->build2DRectQuadMesh(this->mesh, 2, 1,
-					0.0, 0.0, 2.0, 1.0);
-	apf::changeMeshShape(this->mesh, apf::getLagrange(1));
-	this->field = createField(this->mesh, "dummy", apf::VECTOR, this->mesh->getShape());
-	apf::zeroField(this->field); /*must zero the field to force writing of data*/
-	EXPECT_TRUE(this->mesh != NULL);
+/*used to configure the location of the mesh element*/
+struct point_and_step {
+	point_and_step(double x, double y, double offx, double offy,
+				 double xsz, double ysz, uint32_t shpordr) : x0(x), y0(y), offset_x(offx),
+				 offset_y(offy), x_sz(xsz), y_sz(ysz) 
+		{ 
+			std::cout << "shape order: " << shpordr << std::endl;
+			if(shpordr != 1 && shpordr != 2) {
+				throw std::runtime_error("Only shape function orders 1 and 2 are supported");
+			} else {
+				this->shape_order = shpordr;
+			}
+		};
+	double x0;
+	double y0;
+	/*the offset of the second mesh created with a sigle element*/
+	double offset_x;
+	double offset_y;
+	/*the sizes of both elements need to be the same*/
+	double x_sz;
+	double y_sz;
+	uint32_t shape_order;
+};
 
+class LocalStiffnessMatrixTest : public testing::Test,
+	public ::testing::WithParamInterface<struct point_and_step>
+{
+protected:
+	apf::Mesh2* m1, *m2;
+	MeshBuilder* mesh_builder;
+	apf::Field* field1, *field2;
+	apf::Numbering* nodeNums;
+	apf::Matrix< 3,3 > D;
+	double E;
+	double Nu;
+	uint32_t num_components;
+	int integration_order;
 
-	/*set up element numberings we will use for assembly*/
-	uint32_t num_components = 2;
-	apf::Numbering* nodeNums = apf::createNumbering(this->mesh, NODE_NUM_TAG_NAME, this->mesh->getShape(), num_components);
-	apf::Numbering* faceNums = apf::createNumbering(this->mesh, FACE_NUM_TAG_NAME, apf::getConstant(this->mesh->getDimension()), 1);
-	
-	adjReorder(this->mesh, this->mesh->getShape(), num_components, nodeNums, faceNums);
-	apf::writeASCIIVtkFiles("identical linear mesh", this->mesh);
+	void createTwoDifferentMeshes(struct point_and_step ps) {
+		/*forcibly clean up any left over meshes*/
+		if(NULL != this->m1) {
+			m1->destroyNative();
+			apf::destroyMesh(m1);
+		}
+		if(NULL != this->m2) {
+			m2->destroyNative();
+			apf::destroyMesh(m2);
+		}
 
+		int X_ELMS, Y_ELMS;
+		X_ELMS = 1;
+		Y_ELMS = 1;
+
+		this->mesh_builder->build2DRectQuadMesh(m1, X_ELMS, Y_ELMS,
+						ps.x0,
+						ps.y0,
+						ps.x0 + ps.x_sz,
+						ps.y0 + ps.y_sz);
+		apf::changeMeshShape(m1, apf::getLagrange(ps.shape_order));
+		
+		this->field1 = createField(m1, "dummy1", apf::VECTOR, m1->getShape());
+		apf::zeroField(this->field1); /*must zero the field to force writing of data*/
+		EXPECT_TRUE(m1 != NULL);
+		/*Build second single mesh element far away*/
+		this->mesh_builder->build2DRectQuadMesh(m2, X_ELMS, Y_ELMS,
+						(ps.x0 + ps.offset_x),
+						(ps.y0 + ps.offset_y),
+						(ps.x0 + ps.offset_x + ps.x_sz),
+						(ps.y0 + ps.offset_y + ps.y_sz));
+
+		apf::changeMeshShape(m2, apf::getLagrange(ps.shape_order));
+		field2 = createField(m2, "dummy2", apf::VECTOR, m2->getShape());
+		apf::zeroField(field2); /*must zero the field to force writing of data*/
+		EXPECT_TRUE(m2 != NULL);
+
+		bool use_plane_stress = true;
+		this->D = buildD(this->E, this->Nu, use_plane_stress);
+	}
+
+	virtual void SetUp() {
+		/*2D mesh only has two componenets that are labeled for each node*/
+		this->num_components = 2;
+		mesh_builder = new MeshBuilder();
+		m1 = NULL;
+		m2 = NULL;
+		this->E = 1e8;
+		this->Nu = 0.35;
+		this->integration_order = 4;
+	}
+
+	virtual void TearDown() {
+		if(m1 != NULL) {
+			m1->destroyNative();
+			apf::destroyMesh(m1);
+		}
+		if(m2 != NULL) {
+			m2->destroyNative();
+			apf::destroyMesh(m2);
+		}
+		delete mesh_builder;	
+	}
+
+};
+
+INSTANTIATE_TEST_CASE_P(IdenticalElement, LocalStiffnessMatrixTest,
+	::testing::Values(  point_and_step(10000000.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1),
+						point_and_step(10000000.0, 0.0, 0.0, 0.0, 1.0, 1.0, 2)));
+
+TEST_P(LocalStiffnessMatrixTest, DifferentLocations) {
+	/*use a linear quad*/
+	struct point_and_step tmp_args = GetParam();
+	createTwoDifferentMeshes(tmp_args);
+
+	/*prevent scaling of error between different stiffness matricies by linear amount*/
 	this->D[0][0] = 1;
 	this->D[0][1] = 1;
 	this->D[1][0] = 1;
 	this->D[1][1] = 1;
 	this->D[2][2] = 1;
 
+
+	/*set up element numberings we will use for assembly*/
+	uint32_t num_components = 2;
+
 	apf::MeshIterator* it;
 	apf::MeshEntity* e1, *e2;
-	it = this->mesh->begin(2);
-	e1 = this->mesh->iterate(it);
-	e2 = this->mesh->iterate(it);
-	this->mesh->end(it);
-
+	it = m1->begin(2);
+	e1 = m1->iterate(it);
+	m1->end(it);
+	it = m2->begin(2);
+	e2 = m2->iterate(it);
+	m2->end(it);
+	
 	this->integration_order = 4;
-	std::cout << this->D << std::endl;
-	StiffnessContributor2D stiff(this->field, this->D, this->integration_order);
+	StiffnessContributor2D stiff1(field1, this->D, this->integration_order);
 
-	apf::DynamicMatrix ke1, ke2;
+	apf::DynamicMatrix ke1, ke2, ke3;
 	apf::MeshElement* me;
 
-	me = apf::createMeshElement(this->mesh, e1);
-	int entity_type = this->mesh->getType(e1);
-	uint32_t n_l_dofs = apf::countElementNodes(this->mesh->getShape(), entity_type) * num_components;
-	apf::NewArray< int > node_mapping_1(n_l_dofs);
-	int tmp_sz = apf::getElementNumbers(nodeNums, e1, node_mapping_1);
-	assert(tmp_sz >= 0);
-	/*we want to make sure that our guess for the vector was the right size
-	* so we know how many degress of freedom our nodes have*/
-	assert((uint32_t)tmp_sz == n_l_dofs);
+	me = apf::createMeshElement(m1, e1);
+	stiff1.process(me);
+	ke1 = stiff1.ke;
 
-	stiff.process(me);
-	ke1 = stiff.ke;
+	StiffnessContributor2D stiff2(field2, this->D, this->integration_order);
 
-
-	me = apf::createMeshElement(this->mesh, e2);
-	entity_type = this->mesh->getType(e2);
-	n_l_dofs = apf::countElementNodes(this->mesh->getShape(), entity_type) * num_components;
-	apf::NewArray< int > node_mapping_2(n_l_dofs);
-	tmp_sz = apf::getElementNumbers(nodeNums, e2, node_mapping_2);
-	assert(tmp_sz >= 0);
-	stiff.process(me);
-	ke2 = stiff.ke;
+	me = apf::createMeshElement(m2, e2);
+	stiff2.process(me);
+	ke2 = stiff2.ke;
 
 	std::size_t nrows1, ncols1, nrows2, ncols2;
 	nrows1 = ke1.getRows();
@@ -328,114 +416,42 @@ TEST_F(StiffnessTest, IdenticalLinearElement) {
 	assert(nrows1 == nrows2);
 	assert(ncols1 == ncols2);
 
-	std::cout << "ncols: " << ncols1 << " nrows: " << nrows1 << std::endl;
+	ke3.setSize(nrows1, ncols1);
 
 	for(std::size_t ii = 0; ii < nrows1; ++ii) {
 		for(std::size_t jj = 0; jj < ncols1; ++jj) {
-			EXPECT_FLOAT_EQ(ke1(ii, jj), ke2(ii, jj));
-		}
-	}
-}
-
-
-TEST_F(StiffnessTest, IdenticalQuadElement) {
-	this->mesh_builder->build2DRectQuadMesh(this->mesh, 2, 1,
-					0.0, 0.0, 2.0, 1.0);
-	apf::changeMeshShape(this->mesh, apf::getLagrange(2));
-	this->field = createField(this->mesh, "dummy", apf::VECTOR, this->mesh->getShape());
-	apf::zeroField(this->field); /*must zero the field to force writing of data*/
-	EXPECT_TRUE(this->mesh != NULL);
-
-
-	/*set up element numberings we will use for assembly*/
-	uint32_t num_components = 2;
-	apf::Numbering* nodeNums = apf::createNumbering(this->mesh, NODE_NUM_TAG_NAME, this->mesh->getShape(), num_components);
-	apf::Numbering* faceNums = apf::createNumbering(this->mesh, FACE_NUM_TAG_NAME, apf::getConstant(this->mesh->getDimension()), 1);
-	
-	adjReorder(this->mesh, this->mesh->getShape(), num_components, nodeNums, faceNums);
-	apf::writeASCIIVtkFiles("identical mesh", this->mesh);
-
-	this->D[0][0] = 1;
-	this->D[0][1] = 1;
-	this->D[1][0] = 1;
-	this->D[1][1] = 1;
-	this->D[2][2] = 1;
-
-	/*This is ordering of shape functions used below
-	*      ^n
-	*      |
-	*   4--7--3
-	*   |  |  |
-	*   8  9--6--->e
-	*   |     |
-	*   1--5--2
-	*
-	*   indices are just above minus one
-	*/
-
-	/*manually set the degree of freedom mapping for the two elements
-	* based on the node numberings determined by using the reordering
-	* code and visually matching nodes with above orientation*/
-
-	apf::MeshIterator* it;
-	apf::MeshEntity* e1, *e2;
-	it = this->mesh->begin(2);
-	e1 = this->mesh->iterate(it);
-	e2 = this->mesh->iterate(it);
-	this->mesh->end(it);
-
-	this->integration_order = 4;
-	std::cout << this->D << std::endl;
-	StiffnessContributor2D stiff(this->field, this->D, this->integration_order);
-
-	apf::DynamicMatrix ke1, ke2;
-	apf::MeshElement* me;
-
-	me = apf::createMeshElement(this->mesh, e1);
-	int entity_type = this->mesh->getType(e1);
-	uint32_t n_l_dofs = apf::countElementNodes(this->mesh->getShape(), entity_type) * num_components;
-	apf::NewArray< int > node_mapping_1(n_l_dofs);
-	int tmp_sz = apf::getElementNumbers(nodeNums, e1, node_mapping_1);
-	assert(tmp_sz >= 0);
-	/*we want to make sure that our guess for the vector was the right size
-	* so we know how many degress of freedom our nodes have*/
-	assert((uint32_t)tmp_sz == n_l_dofs);
-
-	stiff.process(me);
-	ke1 = stiff.ke;
-
-
-	me = apf::createMeshElement(this->mesh, e2);
-	entity_type = this->mesh->getType(e2);
-	n_l_dofs = apf::countElementNodes(this->mesh->getShape(), entity_type) * num_components;
-	apf::NewArray< int > node_mapping_2(n_l_dofs);
-	tmp_sz = apf::getElementNumbers(nodeNums, e2, node_mapping_2);
-	assert(tmp_sz >= 0);
-	stiff.process(me);
-	ke2 = stiff.ke;
-
-	std::size_t nrows1, ncols1, nrows2, ncols2;
-	nrows1 = ke1.getRows();
-	ncols1 = ke1.getColumns();
-	nrows2 = ke2.getRows();
-	ncols2 = ke2.getColumns();
-
-	assert(nrows1 == nrows2);
-	assert(ncols1 == ncols2);
-
-	std::cout << "ncols: " << ncols1 << " nrows: " << nrows1 << std::endl;
-
-	for(std::size_t ii = 0; ii < nrows1; ++ii) {
-		for(std::size_t jj = ii+1; jj < ncols1; ++jj) {
 			float ratio = ke1(ii,jj) / ke2(ii, jj);
 			if(fabs(ratio - 1.0) > 1e-6) {
-				std::cout << "ratio: "<< ratio << " " << ii << "," << jj << std::endl;
+				ke3(ii, jj) = 1;
+			} else {
+				ke3(ii, jj) = 8;
 			}
-			
-			// EXPECT_FLOAT_EQ(ke1(ii, jj), ke2(ii, jj));
+			EXPECT_NEAR(ke1(ii, jj), ke2(ii, jj), 5e-15);
 		}
 	}
 }
+
+/*=======================================================================*/
+class UserFieldTest : public testing::Test
+{
+protected:
+	apf::Mesh2* mesh;
+	MeshBuilder* mesh_builder;
+
+	virtual void SetUp() {
+		mesh_builder = new MeshBuilder();
+		mesh = NULL;
+	}
+
+	virtual void TearDown() {
+		if(mesh != NULL) {
+			mesh->destroyNative();
+			apf::destroyMesh(mesh);
+		}
+		delete mesh_builder;	
+	}
+
+};
 
 class MyUserFunction : public apf::Function
 {
@@ -462,7 +478,10 @@ protected:
 	apf::Mesh* mesh;
 };
 
-TEST_F(StiffnessTest, ScratchPad) {
+TEST_F(UserFieldTest, ScratchPad) {
+	/*Creats a user defined field aboive in class MyUserFunction 
+	* and checks the gradient of that field at several randomly
+	* chosen points within the boundary of that element*/
 	apf::Mesh2* m = NULL;
 	this->mesh_builder->buildBatmanElementMesh(m);
 
