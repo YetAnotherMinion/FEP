@@ -361,10 +361,15 @@ protected:
 	}
 
 };
-
+/*only test points close by (~+-10 away) from each other because 
+* the numerical calculation of gradients is sensitive to the location in
+* global coordinate space, so two identical elements that are millions
+* of units apart will have an absolute error rougly millions of times larger*/
 INSTANTIATE_TEST_CASE_P(IdenticalElement, LocalStiffnessMatrixTest,
-	::testing::Values(  point_and_step(10000000.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1),
-						point_and_step(10000000.0, 0.0, 0.0, 0.0, 1.0, 1.0, 2)));
+	::testing::Values(  point_and_step(10000000.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1), /*points far way*/
+						point_and_step(10000000.0, 0.0, 0.0, 0.0, 1.0, 1.0, 2),
+						point_and_step(-10000000.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1), /*check negative quadrant*/
+						point_and_step(-10000000.0, 0.0, 0.0, 0.0, 1.0, 1.0, 2)));
 
 TEST_P(LocalStiffnessMatrixTest, DifferentLocations) {
 	/*use a linear quad*/
