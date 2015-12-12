@@ -16,6 +16,7 @@
 #include "StiffnessContributor2D.h"
 #include "MeshBuilder.h"
 #include "ElasticAnalysis2D.h"
+#include "MeshAdjReorder.h" 
 
 enum MeshTypes {
 	LINEAR_QUAD,
@@ -91,7 +92,6 @@ protected:
 		this->E = 1e8;
 		this->Nu = 0.35;
 		this->integration_order = 4;
-
 		struct test_parameters_wrapper tmp_foo(LINEAR_QUAD, 7);
 	}
 
@@ -259,16 +259,182 @@ TEST_P(StiffnessTest, CheckStiffnessMatrix) {
 	this->mesh->end(it);
 }
 
-TEST_F(StiffnessTest, IdenticalElement) {
-	/*We create two quadratic elements of the same size, only
-	* difference is their location in global coordinates,
-	* Both element stiffness matrices should be identical*/
-	mesh_builder->build2DRectQuadMesh(this->mesh, 2, 1, 0.0, 0.0, 2.0, 1.0);
-	// mesh_builder->build2DRectTriMesh(this->mesh, 4, 2, 0.0, 0.0, 2.0, 1.0);
+TEST_F(StiffnessTest, IdenticalLinearElement) {
+	this->mesh_builder->build2DRectQuadMesh(this->mesh, 2, 1,
+					0.0, 0.0, 2.0, 1.0);
+	apf::changeMeshShape(this->mesh, apf::getLagrange(1));
+	this->field = createField(this->mesh, "dummy", apf::VECTOR, this->mesh->getShape());
+	apf::zeroField(this->field); /*must zero the field to force writing of data*/
 	EXPECT_TRUE(this->mesh != NULL);
-	//apf::changeMeshShape(mesh, apf::getSerendipity());
-	apf::changeMeshShape(this->mesh, apf::getLagrange(2));
 
+
+	/*set up element numberings we will use for assembly*/
+	uint32_t num_components = 2;
+	apf::Numbering* nodeNums = apf::createNumbering(this->mesh, NODE_NUM_TAG_NAME, this->mesh->getShape(), num_components);
+	apf::Numbering* faceNums = apf::createNumbering(this->mesh, FACE_NUM_TAG_NAME, apf::getConstant(this->mesh->getDimension()), 1);
+	
+	adjReorder(this->mesh, this->mesh->getShape(), num_components, nodeNums, faceNums);
+	apf::writeASCIIVtkFiles("identical linear mesh", this->mesh);
+
+	this->D[0][0] = 1;
+	this->D[0][1] = 1;
+	this->D[1][0] = 1;
+	this->D[1][1] = 1;
+	this->D[2][2] = 1;
+
+	apf::MeshIterator* it;
+	apf::MeshEntity* e1, *e2;
+	it = this->mesh->begin(2);
+	e1 = this->mesh->iterate(it);
+	e2 = this->mesh->iterate(it);
+	this->mesh->end(it);
+
+	this->integration_order = 4;
+	std::cout << this->D << std::endl;
+	StiffnessContributor2D stiff(this->field, this->D, this->integration_order);
+
+	apf::DynamicMatrix ke1, ke2;
+	apf::MeshElement* me;
+
+	me = apf::createMeshElement(this->mesh, e1);
+	int entity_type = this->mesh->getType(e1);
+	uint32_t n_l_dofs = apf::countElementNodes(this->mesh->getShape(), entity_type) * num_components;
+	apf::NewArray< int > node_mapping_1(n_l_dofs);
+	int tmp_sz = apf::getElementNumbers(nodeNums, e1, node_mapping_1);
+	assert(tmp_sz >= 0);
+	/*we want to make sure that our guess for the vector was the right size
+	* so we know how many degress of freedom our nodes have*/
+	assert((uint32_t)tmp_sz == n_l_dofs);
+
+	stiff.process(me);
+	ke1 = stiff.ke;
+
+
+	me = apf::createMeshElement(this->mesh, e2);
+	entity_type = this->mesh->getType(e2);
+	n_l_dofs = apf::countElementNodes(this->mesh->getShape(), entity_type) * num_components;
+	apf::NewArray< int > node_mapping_2(n_l_dofs);
+	tmp_sz = apf::getElementNumbers(nodeNums, e2, node_mapping_2);
+	assert(tmp_sz >= 0);
+	stiff.process(me);
+	ke2 = stiff.ke;
+
+	std::size_t nrows1, ncols1, nrows2, ncols2;
+	nrows1 = ke1.getRows();
+	ncols1 = ke1.getColumns();
+	nrows2 = ke2.getRows();
+	ncols2 = ke2.getColumns();
+
+	assert(nrows1 == nrows2);
+	assert(ncols1 == ncols2);
+
+	std::cout << "ncols: " << ncols1 << " nrows: " << nrows1 << std::endl;
+
+	for(std::size_t ii = 0; ii < nrows1; ++ii) {
+		for(std::size_t jj = 0; jj < ncols1; ++jj) {
+			EXPECT_FLOAT_EQ(ke1(ii, jj), ke2(ii, jj));
+		}
+	}
+}
+
+
+TEST_F(StiffnessTest, IdenticalQuadElement) {
+	this->mesh_builder->build2DRectQuadMesh(this->mesh, 2, 1,
+					0.0, 0.0, 2.0, 1.0);
+	apf::changeMeshShape(this->mesh, apf::getLagrange(2));
+	this->field = createField(this->mesh, "dummy", apf::VECTOR, this->mesh->getShape());
+	apf::zeroField(this->field); /*must zero the field to force writing of data*/
+	EXPECT_TRUE(this->mesh != NULL);
+
+
+	/*set up element numberings we will use for assembly*/
+	uint32_t num_components = 2;
+	apf::Numbering* nodeNums = apf::createNumbering(this->mesh, NODE_NUM_TAG_NAME, this->mesh->getShape(), num_components);
+	apf::Numbering* faceNums = apf::createNumbering(this->mesh, FACE_NUM_TAG_NAME, apf::getConstant(this->mesh->getDimension()), 1);
+	
+	adjReorder(this->mesh, this->mesh->getShape(), num_components, nodeNums, faceNums);
+	apf::writeASCIIVtkFiles("identical mesh", this->mesh);
+
+	this->D[0][0] = 1;
+	this->D[0][1] = 1;
+	this->D[1][0] = 1;
+	this->D[1][1] = 1;
+	this->D[2][2] = 1;
+
+	/*This is ordering of shape functions used below
+	*      ^n
+	*      |
+	*   4--7--3
+	*   |  |  |
+	*   8  9--6--->e
+	*   |     |
+	*   1--5--2
+	*
+	*   indices are just above minus one
+	*/
+
+	/*manually set the degree of freedom mapping for the two elements
+	* based on the node numberings determined by using the reordering
+	* code and visually matching nodes with above orientation*/
+
+	apf::MeshIterator* it;
+	apf::MeshEntity* e1, *e2;
+	it = this->mesh->begin(2);
+	e1 = this->mesh->iterate(it);
+	e2 = this->mesh->iterate(it);
+	this->mesh->end(it);
+
+	this->integration_order = 4;
+	std::cout << this->D << std::endl;
+	StiffnessContributor2D stiff(this->field, this->D, this->integration_order);
+
+	apf::DynamicMatrix ke1, ke2;
+	apf::MeshElement* me;
+
+	me = apf::createMeshElement(this->mesh, e1);
+	int entity_type = this->mesh->getType(e1);
+	uint32_t n_l_dofs = apf::countElementNodes(this->mesh->getShape(), entity_type) * num_components;
+	apf::NewArray< int > node_mapping_1(n_l_dofs);
+	int tmp_sz = apf::getElementNumbers(nodeNums, e1, node_mapping_1);
+	assert(tmp_sz >= 0);
+	/*we want to make sure that our guess for the vector was the right size
+	* so we know how many degress of freedom our nodes have*/
+	assert((uint32_t)tmp_sz == n_l_dofs);
+
+	stiff.process(me);
+	ke1 = stiff.ke;
+
+
+	me = apf::createMeshElement(this->mesh, e2);
+	entity_type = this->mesh->getType(e2);
+	n_l_dofs = apf::countElementNodes(this->mesh->getShape(), entity_type) * num_components;
+	apf::NewArray< int > node_mapping_2(n_l_dofs);
+	tmp_sz = apf::getElementNumbers(nodeNums, e2, node_mapping_2);
+	assert(tmp_sz >= 0);
+	stiff.process(me);
+	ke2 = stiff.ke;
+
+	std::size_t nrows1, ncols1, nrows2, ncols2;
+	nrows1 = ke1.getRows();
+	ncols1 = ke1.getColumns();
+	nrows2 = ke2.getRows();
+	ncols2 = ke2.getColumns();
+
+	assert(nrows1 == nrows2);
+	assert(ncols1 == ncols2);
+
+	std::cout << "ncols: " << ncols1 << " nrows: " << nrows1 << std::endl;
+
+	for(std::size_t ii = 0; ii < nrows1; ++ii) {
+		for(std::size_t jj = ii+1; jj < ncols1; ++jj) {
+			float ratio = ke1(ii,jj) / ke2(ii, jj);
+			if(fabs(ratio - 1.0) > 1e-6) {
+				std::cout << "ratio: "<< ratio << " " << ii << "," << jj << std::endl;
+			}
+			
+			// EXPECT_FLOAT_EQ(ke1(ii, jj), ke2(ii, jj));
+		}
+	}
 }
 
 class MyUserFunction : public apf::Function
@@ -331,4 +497,10 @@ TEST_F(StiffnessTest, ScratchPad) {
 		EXPECT_FLOAT_EQ(5.0, tmp_grad[1]);
 	} 
 	apf::writeASCIIVtkFiles("batman_elm", m);
+}
+
+TEST_F(StiffnessTest, QuadraticShapeFunctionCheck) {
+
+
+
 }

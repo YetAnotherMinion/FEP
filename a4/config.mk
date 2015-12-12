@@ -1,7 +1,7 @@
 CC=gcc
 
 ifeq ($(CC), gcc)
-	MPIFLAGS+=--std=c++0x -Wno-long-long
+	MPIFLAGS+=--std=c++11 -Wno-long-long
 else
 	MPIFLAGS+=-Wno-c++11-long-long
 endif
