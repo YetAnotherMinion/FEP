@@ -8,6 +8,7 @@
 
 #include <fstream>
 #include <assert.h>
+#include <stdexcept> /*provides runtime error*/
 
 #include <PCU.h>
 #include <apf.h>
