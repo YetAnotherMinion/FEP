@@ -81,6 +81,9 @@ ElasticAnalysis2D::~ElasticAnalysis2D()
 {
 	apf::destroyNumbering(this->nodeNums);
 	apf::destroyNumbering(this->faceNums);
+	apf::destroyField(this->disp_field);
+	apf::destroyField(this->strain_field);
+	apf::destroyField(this->stress_field);
 	delete this->linsys;
 }
 

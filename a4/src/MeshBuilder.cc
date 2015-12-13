@@ -427,5 +427,7 @@ void MeshBuilder::buildBatmanElementMesh(apf::Mesh2* & mesh)
 	/*set the center node*/
 	tmp_vec.x() = 1.90; tmp_vec.y() = 2.05;
 	mesh->setPoint(e, 0, tmp_vec);
+	/*clean up the iterator*/
+	mesh->end(it);
 	delete[] vertices;
 }

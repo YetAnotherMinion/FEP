@@ -137,11 +137,11 @@ TEST_P(StiffnessTest, StiffnessIsSymmetric) {
 
 		apf::MeshElement* me = apf::createMeshElement(this->mesh, e);
 		stiff.process(me);
-		apf::destroyMeshElement(me);
 
 		apf::Element* f_elm = apf::createElement(this->field, me);
 		uint32_t nnodes = apf::countNodes(f_elm);
 		apf::destroyElement(f_elm);
+		apf::destroyMeshElement(me);
 
 		uint32_t n_eqs = nnodes * this->mesh->getDimension();
 		/*check that stiffness are symmetric*/
@@ -383,8 +383,6 @@ TEST_P(LocalStiffnessMatrixTest, DifferentLocations) {
 	this->D[1][0] = 1;
 	this->D[1][1] = 1;
 	this->D[2][2] = 1;
-
-
 	/*set up element numberings we will use for assembly*/
 	uint32_t num_components = 2;
 
@@ -405,12 +403,16 @@ TEST_P(LocalStiffnessMatrixTest, DifferentLocations) {
 
 	me = apf::createMeshElement(m1, e1);
 	stiff1.process(me);
+	apf::destroyMeshElement(me);
+	me = NULL;
 	ke1 = stiff1.ke;
 
 	StiffnessContributor2D stiff2(field2, this->D, this->integration_order);
 
 	me = apf::createMeshElement(m2, e2);
 	stiff2.process(me);
+	apf::destroyMeshElement(me);
+	me = NULL;
 	ke2 = stiff2.ke;
 
 	std::size_t nrows1, ncols1, nrows2, ncols2;
@@ -434,6 +436,22 @@ TEST_P(LocalStiffnessMatrixTest, DifferentLocations) {
 			}
 			EXPECT_NEAR(ke1(ii, jj), ke2(ii, jj), 5e-15);
 		}
+	}
+}
+
+TEST_F(LocalStiffnessMatrixTest, GetMatrix) {
+	apf::Mesh2* two_mesh = NULL;
+	this->mesh_builder->build2DRectQuadMesh(two_mesh, 1, 2, 0.0, 0.0, 2.0, 1.0);
+	apf::changeMeshShape(two_mesh, apf::getLagrange(2));
+	
+	this->field1 = createField(two_mesh, "dummy", apf::VECTOR, two_mesh->getShape());
+	apf::zeroField(this->field1); /*must zero the field to force writing of data*/
+	EXPECT_TRUE(two_mesh != NULL);
+
+
+	if(two_mesh != NULL) {
+		two_mesh->destroyNative();
+		apf::destroyMesh(two_mesh);
 	}
 }
 
@@ -473,7 +491,9 @@ public:
 
 			apf::Vector3 x_vec;
 			apf::mapLocalToGlobal(me, tmp_vec, x_vec);
+			apf::destroyMeshElement(me);
 			*result = (2*x_vec[0] + 5*x_vec[1]);
+
 		} else {
 			std::cout << "failed to set field" << std::endl;
 			*result = -1.0;
@@ -503,7 +523,9 @@ TEST_F(UserFieldTest, ScratchPad) {
 	apf::Field* test_f = apf::createUserField(m, "testingField", apf::SCALAR, m->getShape(), &test_fnc);
 
 	apf::MeshElement* me = apf::createMeshElement(m, e);
-	apf::Element* f_elm = apf::createElement(test_f, me);
+	/*cannot destroy mesh element until field element is finished*/
+	apf::Element* f_elm = apf::createElement(test_f, me); 
+	
 
 	/*pick a random spot inside the element coordinates*/
 	apf::Vector3 sample_points[8] =
@@ -520,8 +542,18 @@ TEST_F(UserFieldTest, ScratchPad) {
 		apf::getGrad(f_elm, sample_points[ii], tmp_grad);
 		EXPECT_FLOAT_EQ(2.0, tmp_grad[0]);
 		EXPECT_FLOAT_EQ(5.0, tmp_grad[1]);
-	} 
+	}
+
+	/*clean up the field element*/
+	apf::destroyElement(f_elm);
+	apf::destroyMeshElement(me);
+	me = NULL;
+	apf::destroyField(test_f);
+
 	apf::writeASCIIVtkFiles("batman_elm", m);
+
+	m->destroyNative();
+	apf::destroyMesh(m);
 }
 
 TEST_F(StiffnessTest, QuadraticShapeFunctionCheck) {
