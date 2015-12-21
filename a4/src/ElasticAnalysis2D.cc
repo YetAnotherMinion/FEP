@@ -356,6 +356,68 @@ uint32_t ElasticAnalysis2D::recover()
 			this->m->end(it);
 		}
 	}
+	/*Stiffness contributors for 2D mesh are only the faces*/
+	it = this->m->begin(2);
+	/*We are only going to recover the stress at the nodes becuase those are the locations
+	* that can be easily displayed in ParaView by use of a Field over the mesh nodes,
+	* We hardcode this list of points to be indexed according to the ordering of the shape
+	* functions described in apfShape.cc
+	* This is ordering of shape functions used below
+	*      ^n
+	*      |
+	*   3--6--2
+	*   |  |  |
+	*   7  8--5--->e
+	*   |     |
+	*   0--4--1
+	*
+	*/
+	apf::Vector3 node_xi[9];
+	node_xi[0] = apf::Vector3(-1.0,-1.0, 0.0);
+	node_xi[1] = apf::Vector3( 1.0,-1.0, 0.0);
+	node_xi[2] = apf::Vector3( 1.0, 1.0, 0.0);
+	node_xi[3] = apf::Vector3(-1.0, 1.0, 0.0);
+	node_xi[4] = apf::Vector3( 0.0,-1.0, 0.0);
+	node_xi[5] = apf::Vector3( 1.0, 0.0, 0.0);
+	node_xi[6] = apf::Vector3( 0.0, 1.0, 0.0);
+	node_xi[7] = apf::Vector3(-1.0, 0.0, 0.0);
+	node_xi[8] = apf::Vector3( 0.0, 0.0, 0.0);
+
+	while((e = this->m->iterate(it))){
+		int entity_type = this->m->getType(e);
+		apf::MeshElement * me = apf::createMeshElement(this->m, e);
+		apf::Element* field_element = apf::createElement(this->field, me);
+
+		int n_entity_nodes = apf::countNodes(field_element);
+		assert(n_entity_nodes >= 0);
+		for(uint32_t ii =0; ii < static_cast<uint32_t>(n_entity_nodes); ++ii) {
+			
+			std::cout << ii << ": " << node_xi[ii] << std::endl;
+
+			// apf::NewArray<apf::Vector3> gradShape;
+			// apf::getShapeGrads(field_element, p, gradShape);
+
+
+			// apf::NewArray< apf::Matrix< 3,2 > > B(this->nnodes);
+			// /*construct each of the nnodes shape function matricies*/
+			// uint32_t ii, jj;
+			// for(ii = 0; ii < this->nnodes; ++ii) {
+			// 	B[ii][0][0] = gradShape[ii][0];
+			// 	B[ii][0][1] = 0.0;
+			// 	B[ii][1][0] = 0.0;
+			// 	B[ii][1][1] = gradShape[ii][1];
+			// 	B[ii][2][0] = gradShape[ii][1];
+			// 	B[ii][2][1] = gradShape[ii][0];
+			// }
+
+		}
+		std::cout << "-------------------" << std::endl;
+		apf::destroyElement(field_element);
+		apf::destroyMeshElement(me);
+	}
+	this->m->end(it);
+
+
 	std::cout << "==============Recovered=============" << std::endl;
 
 	return 0;
