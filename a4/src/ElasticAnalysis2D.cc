@@ -358,31 +358,6 @@ uint32_t ElasticAnalysis2D::recover()
 	}
 	/*Stiffness contributors for 2D mesh are only the faces*/
 	it = this->m->begin(2);
-	/*We are only going to recover the stress at the nodes becuase those are the locations
-	* that can be easily displayed in ParaView by use of a Field over the mesh nodes,
-	* We hardcode this list of points to be indexed according to the ordering of the shape
-	* functions described in apfShape.cc
-	* This is ordering of shape functions used below
-	*      ^n
-	*      |
-	*   3--6--2
-	*   |  |  |
-	*   7  8--5--->e
-	*   |     |
-	*   0--4--1
-	*
-	*/
-	apf::Vector3 node_xi[9];
-	node_xi[0] = apf::Vector3(-1.0,-1.0, 0.0);
-	node_xi[1] = apf::Vector3( 1.0,-1.0, 0.0);
-	node_xi[2] = apf::Vector3( 1.0, 1.0, 0.0);
-	node_xi[3] = apf::Vector3(-1.0, 1.0, 0.0);
-	node_xi[4] = apf::Vector3( 0.0,-1.0, 0.0);
-	node_xi[5] = apf::Vector3( 1.0, 0.0, 0.0);
-	node_xi[6] = apf::Vector3( 0.0, 1.0, 0.0);
-	node_xi[7] = apf::Vector3(-1.0, 0.0, 0.0);
-	node_xi[8] = apf::Vector3( 0.0, 0.0, 0.0);
-
 	while((e = this->m->iterate(it))){
 		int entity_type = this->m->getType(e);
 		apf::MeshElement * me = apf::createMeshElement(this->m, e);
@@ -391,8 +366,9 @@ uint32_t ElasticAnalysis2D::recover()
 		int n_entity_nodes = apf::countNodes(field_element);
 		assert(n_entity_nodes >= 0);
 		for(uint32_t ii =0; ii < static_cast<uint32_t>(n_entity_nodes); ++ii) {
-			
-			std::cout << ii << ": " << node_xi[ii] << std::endl;
+			apf::Vector3 xi;
+			fs->getNodeXi(entity_type, ii, xi);
+			// std::cout << ii << ": " << xi << std::endl;
 
 			// apf::NewArray<apf::Vector3> gradShape;
 			// apf::getShapeGrads(field_element, p, gradShape);
@@ -411,7 +387,7 @@ uint32_t ElasticAnalysis2D::recover()
 			// }
 
 		}
-		std::cout << "-------------------" << std::endl;
+		// std::cout << "-------------------" << std::endl;
 		apf::destroyElement(field_element);
 		apf::destroyMeshElement(me);
 	}

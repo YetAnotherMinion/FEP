@@ -51,6 +51,12 @@ apf::Vector3 LinearLoad_Y(apf::Vector3 const & p)
 	return apf::Vector3(0, -1000.0, 0);
 }
 
+apf::Vector3 Gravity_Y(apf::Vector3 const & p) 
+{
+	return apf::Vector3(0, -1000.0, 0);
+}
+
+
 TEST_F(ElasticAnalysisTest, AppRunTest) {
 	mesh_builder->build2DRectQuadMesh(this->mesh, 2, 1, 0.0, 0.0, 2.0, 1.0);
 	// mesh_builder->build2DRectTriMesh(this->mesh, 4, 2, 0.0, 0.0, 2.0, 1.0);
@@ -108,6 +114,123 @@ TEST_F(ElasticAnalysisTest, AppRunTest) {
 	}
 	
 	apf::writeASCIIVtkFiles("solution_mesh", this->mesh);
+	delete geo_map;
+}
+
+TEST_F(ElasticAnalysisTest, SideConcaveTest) {
+	mesh_builder->build2DRectQuadMesh(this->mesh, 6, 6, 0.0, 0.0, 2.0, 1.0);
+	// mesh_builder->build2DRectTriMesh(this->mesh, 4, 2, 0.0, 0.0, 2.0, 1.0);
+	EXPECT_TRUE(this->mesh != NULL);
+	//apf::changeMeshShape(mesh, apf::getSerendipity());
+	apf::changeMeshShape(this->mesh, apf::getLagrange(2));
+	/*physical parameters*/
+	double E, Nu;
+	E = YOUNGS_MODULUS;
+	Nu = POISSONS_RATIO;
+	//Nu = 0.0;
+	uint32_t integration_order = 4;
+	bool reorder_flag = true;
+	/*Fix the bottom edge in the Y direction only, and the
+	* left side in the X direction only*/
+	GeometryMappings* geo_map = new GeometryMappings();
+	void (*cnstr_ptr)(apf::MeshEntity*, apf::Mesh*, apf::Numbering*, std::vector<uint64_t> &, std::vector<double> &);
+	cnstr_ptr = &zeroDisplacementX_2D;
+	geo_map->addDircheletMapping(LEFT_EDGE, cnstr_ptr);
+	cnstr_ptr = &zeroDisplacementY_2D;
+	geo_map->addDircheletMapping(TOP_EDGE, cnstr_ptr);
+	geo_map->addDircheletMapping(BOT_EDGE, cnstr_ptr);
+
+	apf::Vector3 (*traction_ptr)(apf::Vector3 const &);
+	traction_ptr = &LinearLoad_X;
+	geo_map->addNeumannMapping(RIGHT_EDGE, traction_ptr);
+
+	struct ElasticAnalysisInput input = {
+			this->mesh,
+			geo_map,
+			integration_order,
+			E,
+			Nu,
+			reorder_flag};
+
+	ElasticAnalysis2D tmp(input);
+
+	PetscViewerSetFormat(PETSC_VIEWER_STDOUT_WORLD, PETSC_VIEWER_ASCII_MATLAB);
+
+	EXPECT_EQ(0, tmp.setup());
+
+	// MatView(tmp.linsys->K, PETSC_VIEWER_STDOUT_WORLD);
+	// VecView(tmp.linsys->F, PETSC_VIEWER_STDOUT_WORLD);
+
+
+	EXPECT_EQ(0, tmp.solve());
+	// VecView(tmp.linsys->d, PETSC_VIEWER_STDOUT_WORLD);
+
+	EXPECT_EQ(0, tmp.recover());
+
+	// std::cout << "=========== Solution ============" << std::endl;
+	// for(std::size_t ii = 0; ii < tmp.displacement.size(); ++ii) {
+	// 	std::cout << "d_" << ii << " = " << (tmp.displacement[ii]) << std::endl;
+	// }
+	
+	apf::writeASCIIVtkFiles("side_concave", this->mesh);
+	delete geo_map;
+}
+
+TEST_F(ElasticAnalysisTest, LinearGravityTest) {
+	mesh_builder->build2DRectQuadMesh(this->mesh, 20, 10, 0.0, 0.0, 2.0, 1.0);
+	// mesh_builder->build2DRectTriMesh(this->mesh, 4, 2, 0.0, 0.0, 2.0, 1.0);
+	EXPECT_TRUE(this->mesh != NULL);
+	//apf::changeMeshShape(mesh, apf::getSerendipity());
+	// apf::changeMeshShape(this->mesh, apf::getLagrange(1));
+	/*physical parameters*/
+	double E, Nu;
+	E = YOUNGS_MODULUS;
+	Nu = POISSONS_RATIO;
+	//Nu = 0.0;
+	uint32_t integration_order = 4;
+	bool reorder_flag = true;
+	/*Fix the bottom edge in the Y direction only, and the
+	* left side in the X direction only*/
+	GeometryMappings* geo_map = new GeometryMappings();
+	void (*cnstr_ptr)(apf::MeshEntity*, apf::Mesh*, apf::Numbering*, std::vector<uint64_t> &, std::vector<double> &);
+	cnstr_ptr = &zeroDisplacementX_2D;
+	geo_map->addDircheletMapping(LEFT_EDGE, cnstr_ptr);
+	cnstr_ptr = &zeroDisplacementY_2D;
+	geo_map->addDircheletMapping(BOT_EDGE, cnstr_ptr);
+
+	apf::Vector3 (*traction_ptr)(apf::Vector3 const &);
+	traction_ptr = &Gravity_Y;
+	geo_map->addNeumannMapping(ALL_FACES, traction_ptr);
+
+	struct ElasticAnalysisInput input = {
+			this->mesh,
+			geo_map,
+			integration_order,
+			E,
+			Nu,
+			reorder_flag};
+
+	ElasticAnalysis2D tmp(input);
+
+	PetscViewerSetFormat(PETSC_VIEWER_STDOUT_WORLD, PETSC_VIEWER_ASCII_MATLAB);
+
+	EXPECT_EQ(0, tmp.setup());
+
+	// MatView(tmp.linsys->K, PETSC_VIEWER_STDOUT_WORLD);
+
+	// VecView(tmp.linsys->F, PETSC_VIEWER_STDOUT_WORLD);
+
+
+	EXPECT_EQ(0, tmp.solve());
+	// VecView(tmp.linsys->d, PETSC_VIEWER_STDOUT_WORLD);
+	EXPECT_EQ(0, tmp.recover());
+
+	// std::cout << "=========== Solution ============" << std::endl;
+	// for(std::size_t ii = 0; ii < tmp.displacement.size(); ++ii) {
+	// 	std::cout << "d_" << ii << " = " << (tmp.displacement[ii]) << std::endl;
+	// }
+	
+	apf::writeASCIIVtkFiles("gravity", this->mesh);
 	delete geo_map;
 }
 

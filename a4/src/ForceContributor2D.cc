@@ -29,10 +29,10 @@ void ForceContributor2D::inElement(apf::MeshElement* me)
 
 void ForceContributor2D::outElement()
 {
-    std::cout << "==========================" << std::endl;
-    for(std::size_t ii = 0; ii < this->fe.size(); ++ii) {
-        std::cout << ii << " : " << this->fe[ii] << std::endl;
-    }
+    // std::cout << "==========================" << std::endl;
+    // for(std::size_t ii = 0; ii < this->fe.size(); ++ii) {
+    //     std::cout << ii << " : " << this->fe[ii] << std::endl;
+    // }
     /*perform clean up and destroy specific field element*/
     apf::destroyElement(this->field_element);
 }

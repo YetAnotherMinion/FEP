@@ -400,7 +400,7 @@ void AlgebraicSystem::assemble(
 		throw std::range_error("local rows size exceeded mapping size");
 	}
 	std::size_t f_size = fe.size();
-	std::cout << "f_size:" << f_size << std::endl;
+	// std::cout << "f_size:" << f_size << std::endl;
 
 	PetscInt *ix = new PetscInt[f_size];
 	PetscScalar *y = new PetscScalar[f_size];
@@ -425,7 +425,7 @@ void AlgebraicSystem::assemble(
 			y[ni] = tmp;
 			++ni;
 		} else {
-			std::cout << "dropping force contribution" << std::endl;
+			// std::cout << "dropping force contribution" << std::endl;
 			/*high bit IS set, so it is fixed, so the force contribution is
 			* silently dropped */
 		}
