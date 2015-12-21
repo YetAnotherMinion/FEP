@@ -400,7 +400,7 @@ void AlgebraicSystem::assemble(
 		throw std::range_error("local rows size exceeded mapping size");
 	}
 	std::size_t f_size = fe.size();
-	std::cout << "f_size" << f_size << std::endl;
+	std::cout << "f_size:" << f_size << std::endl;
 
 	PetscInt *ix = new PetscInt[f_size];
 	PetscScalar *y = new PetscScalar[f_size];
@@ -422,7 +422,7 @@ void AlgebraicSystem::assemble(
 			/*extract the 32 bit number*/
 			ix[ni] = static_cast<PetscInt>((tmp_val & SAMPLE_LOW_32_BITS));
 			PetscScalar tmp = fe[ii];
-			y[ii] = tmp;
+			y[ni] = tmp;
 			++ni;
 		} else {
 			std::cout << "dropping force contribution" << std::endl;
@@ -430,6 +430,7 @@ void AlgebraicSystem::assemble(
 			* silently dropped */
 		}
 	}
+
 	VecSetValues(this->F, ni, ix, y, ADD_VALUES);
 
 	delete[] ix;
