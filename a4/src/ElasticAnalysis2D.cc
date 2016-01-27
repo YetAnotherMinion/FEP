@@ -363,12 +363,14 @@ uint32_t ElasticAnalysis2D::recover()
 		apf::MeshElement * me = apf::createMeshElement(this->m, e);
 		apf::Element* field_element = apf::createElement(this->field, me);
 
+		/*recover the stress for each of the integration points*/
 		int n_entity_nodes = apf::countNodes(field_element);
 		assert(n_entity_nodes >= 0);
 		for(uint32_t ii =0; ii < static_cast<uint32_t>(n_entity_nodes); ++ii) {
 			apf::Vector3 xi;
 			fs->getNodeXi(entity_type, ii, xi);
-			// std::cout << ii << ": " << xi << std::endl;
+
+			std::cout << ii << ": " << xi << std::endl;
 
 			// apf::NewArray<apf::Vector3> gradShape;
 			// apf::getShapeGrads(field_element, p, gradShape);
@@ -387,7 +389,7 @@ uint32_t ElasticAnalysis2D::recover()
 			// }
 
 		}
-		// std::cout << "-------------------" << std::endl;
+		std::cout << "-------------------" << std::endl;
 		apf::destroyElement(field_element);
 		apf::destroyMeshElement(me);
 	}

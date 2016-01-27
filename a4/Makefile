@@ -127,14 +127,16 @@ $(ODIR)/StiffnessContributor2D.o : 	$(SDIR)/StiffnessContributor2D.cc \
 								$(GTEST_HEADERS)
 	mpicxx $(CPPFLAGS) $(MPIFLAGS) $(PUMI_INC) -c $< -o $@
 
+$(ODIR)/RecoveryIntegrator.o : 	$(SDIR)/RecoveryIntegrator.cc \
+								$(IDIR)/RecoveryIntegrator.h
+	mpicxx $(CPPFLAGS) $(MPIFLAGS) $(PUMI_INC) -c $< -o $@
+
 $(ODIR)/ForceContributor2D.o : 	$(SDIR)/ForceContributor2D.cc \
-								$(IDIR)/ForceContributor2D.h \
-								$(GTEST_HEADERS)
+								$(IDIR)/ForceContributor2D.h
 	mpicxx $(CPPFLAGS) $(MPIFLAGS) $(PUMI_INC) -c $< -o $@
 
 $(ODIR)/AlgebraicSystem.o : $(SDIR)/AlgebraicSystem.cc \
-							$(IDIR)/AlgebraicSystem.h \
-							$(GTEST_HEADERS)
+							$(IDIR)/AlgebraicSystem.h
 	mpicxx $(CPPFLAGS) $(MPIFLAGS) $(PETSC_INC) $(PUMI_INC) -c $< -o $@
 
 $(ODIR)/AlgebraicSystem_unittest.o : 	$(SDIR)/AlgebraicSystem_unittest.cc \
@@ -174,7 +176,8 @@ $(BDIR)/a4 : 	$(ODIR)/a4.o $(ODIR)/MeshBuilder.o $(ODIR)/MeshBuilder_unittest.o 
 				$(ODIR)/GeometryMappings.o \
 				$(ODIR)/GeometryMappings_unittest.o \
 				$(ODIR)/StiffnessContributor2D_unittest.o \
-				$(LDIR)/gtest.a 				
+				$(ODIR)/RecoveryIntegrator.o \
+				$(LDIR)/gtest.a
 	mpicxx $(CPPFLAGS) $(CXXFLAGS) $(PETSC_LIB) $(PUMI_LIBS) $^ -lpetsc -lmds -lapf -lgmi -lpcu -llion -lmth -lpthread  -o $@
 
 #===============================================

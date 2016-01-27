@@ -18,7 +18,7 @@
 #include "AlgebraicSystem.h" /*provides SOLVER_ABSOLUTE_TOLERANCE constant*/
 
 #define YOUNGS_MODULUS  1e8
-#define POISSONS_RATIO 0.35
+#define POISSONS_RATIO -0.35
 
 class ElasticAnalysisTest : public testing::Test
 {

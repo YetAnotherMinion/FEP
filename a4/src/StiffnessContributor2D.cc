@@ -38,8 +38,9 @@ void StiffnessContributor2D::outElement()
 
 void StiffnessContributor2D::atPoint(apf::Vector3 const& p, double w, double dV)
 {
-	apf::NewArray<double> shape_val;
-	apf::getShapeValues(this->field_element, p, shape_val);
+	// below two lines do not appear to be used [Jan 14 2016]
+	// apf::NewArray<double> shape_val;
+	// apf::getShapeValues(this->field_element, p, shape_val);
 
 	apf::NewArray<apf::Vector3> gradShape;
 	apf::getShapeGrads(this->field_element, p, gradShape);
@@ -51,8 +52,8 @@ void StiffnessContributor2D::atPoint(apf::Vector3 const& p, double w, double dV)
 
 	apf::NewArray< apf::Matrix< 3,2 > > B(this->nnodes);
 	/*construct each of the nnodes shape function matricies*/
-	uint32_t ii, jj;
-	for(ii = 0; ii < this->nnodes; ++ii) {
+
+	for(auto ii = 0; ii < this->nnodes; ++ii) {
 		B[ii][0][0] = gradShape[ii][0];
 		B[ii][0][1] = 0.0;
 		B[ii][1][0] = 0.0;
@@ -63,8 +64,8 @@ void StiffnessContributor2D::atPoint(apf::Vector3 const& p, double w, double dV)
 
 	/*assemble all blocks since there are inconsistent results when trying to assemble
 	* only above main diagonal*/
-	for(ii = 0; ii < this->nnodes; ++ii) {
-		for(jj = ii; jj < this->nnodes; ++jj) {
+	for(auto ii = 0; ii < this->nnodes; ++ii) {
+		for(auto jj = ii; jj < this->nnodes; ++jj) {
 			apf::Matrix< 2,2 > nodal_submatrix = (transpose(B[ii]) * (this->D) * B[jj]);
 			nodal_submatrix = nodal_submatrix * w * dV;
 			/*add the contribution to the element stiffness matrix,

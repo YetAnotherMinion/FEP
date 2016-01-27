@@ -90,7 +90,19 @@ protected:
 
 };
 
-TEST_F(AlgebraicSystemTest, AssembleInsertionTest) {
+TEST(AlgebraicSystemTest, AssembleForceInsertionTest)
+{
+	/*in this test we check that force vector contributions
+	* are assembled correctly, we will use 3 sets of force vector
+	* contributions to test that insertions are additive, and
+	* that adding both positive and negative values are supported
+	*/
+
+
+
+}
+
+TEST_F(AlgebraicSystemTest, AssembleMatrixInsertionTest) {
 	/*in this test we check that insertions of stiffness matrix
 	* are additive, that is if we insert the same local stiffness 
 	* matrix into the global matrix that the contributions are
