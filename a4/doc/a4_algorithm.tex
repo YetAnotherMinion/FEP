@@ -74,79 +74,29 @@ our specific linear elastics definition. This class accepts a PUMI mesh and make
 several assumptions about the mesh structure to determine boundary conditions and
 tractions. The mesh is expected to have a series of  
 
-For memory efficiency the algebraric system is assembled as we iterate over all of the
-mesh elements. Assemly is simpilfied by the fact we are using isoparametric elements
+For memory efficiency the algebraic system is assembled as we iterate over all of the
+mesh elements. Assembly is simplified by the fact we are using isoparametric elements
 
-We extend the apf::Integrator class to implement each stiffnes contributor
+We extend the apf::Integrator class to implement each stiffness contributor, as well as the discretization of each traction.
 
 
 \section{Tests}
 
-\subsection{Zero Boundary Constraints, Zero Tractions}
-    \subsubsection{Linear Quadrialateral Elements}
+\subsection{No Boundary Constraints, No Tractions}
 
-    \subsubsection{Linear Triangular Elements}
 
-    \subsubsection{Quadratic Lagrange Quadrialateral Elements}
+\subsection{Zero Displacement Boundary Conditions, No Tractions}
 
-    \subsubsection{Quadratic Serendipity Quadrilateral Elements}
 
-    \subsubsection{Quadratic Lagrange Triangular Elements}
-
-\subsection{Some Boundary Constraints, Zero Tractions}
-    \subsubsection{Linear Quadrialateral Elements}
-
-    \subsubsection{Linear Triangular Elements}
-
-    \subsubsection{Quadratic Lagrange Quadrialateral Elements}
-
-    \subsubsection{Quadratic Serendipity Quadrilateral Elements}
-
-    \subsubsection{Quadratic Lagrange Triangular Elements}
-
-\subsection{Completely Constrained, Zero Tractions}
-    \subsubsection{Linear Quadrialateral Elements}
-
-    \subsubsection{Linear Triangular Elements}
-
-    \subsubsection{Quadratic Lagrange Quadrialateral Elements}
-
-    \subsubsection{Quadratic Serendipity Quadrilateral Elements}
-
-    \subsubsection{Quadratic Lagrange Triangular Elements}
+\subsection{Zero Displacement Boundary Conditions, Simple}
 
 \subsection{Some Boundary Constraints, Simple Linear Traction}
-    \subsubsection{Linear Quadrialateral Elements}
-
-    \subsubsection{Linear Triangular Elements}
-
-    \subsubsection{Quadratic Lagrange Quadrialateral Elements}
-
-    \subsubsection{Quadratic Serendipity Quadrilateral Elements}
-
-    \subsubsection{Quadratic Lagrange Triangular Elements}
 
 \subsection{Some Boundary Constraints, Simple Body Force}
-    \subsubsection{Linear Quadrialateral Elements}
-
-    \subsubsection{Linear Triangular Elements}
-
-    \subsubsection{Quadratic Lagrange Quadrialateral Elements}
-
-    \subsubsection{Quadratic Serendipity Quadrilateral Elements}
-
-    \subsubsection{Quadratic Lagrange Triangular Elements}
 
 \subsection{Some Boundary Constraints, Tractions and Body Forces}
-    \subsubsection{Linear Quadrialateral Elements}
 
-    \subsubsection{Linear Triangular Elements}
-
-    \subsubsection{Quadratic Lagrange Quadrialateral Elements}
-
-    \subsubsection{Quadratic Serendipity Quadrilateral Elements}
-
-    \subsubsection{Quadratic Lagrange Triangular Elements}
+\subsection{Fully Constrained with Zero Displacements with Body Forces}
 
 
 
@@ -155,7 +105,24 @@ We extend the apf::Integrator class to implement each stiffnes contributor
 \begin{algorithm}
 \begin{algorithmic}
 
-\Procedure{MigrateRegions}{mesh}
+\Procedure{Foo}{bar}
+    \State
+\EndProcedure
+
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}
+\begin{algorithmic}
+
+\Procedure{IntegrateStiffness}{element, weight, dV}
+    \State n\_local\_dofs $\gets$ NDIM $*$ countElementNodes(element) \Comment{2} 
+    \State K\_element $\gets$ Matrix< n\_local\_dofs, n\_local\_dofs >
+    \ForAll{integration_point \textbf{on} element}
+        \State gradShape $\gets$ getShapeGradient(integration_point)
+        \Comment Construct
+        \ForAll{node \textbf{in} element}
+            \State B[node\_index] $\gets$ $ \left[  \right]$
     
 \EndProcedure
 
