@@ -358,40 +358,12 @@ uint32_t ElasticAnalysis2D::recover()
 	}
 	/*Stiffness contributors for 2D mesh are only the faces*/
 	it = this->m->begin(2);
+	// const apf::Matrix< 3, 3 > & isotropic(apf::Vector3 point) {
+		/*use the values of D*/
+	// RecoveryIntegrator<3> foo(this->disp_field, this->nodeNums, )
+
 	while((e = this->m->iterate(it))){
-		int entity_type = this->m->getType(e);
-		apf::MeshElement * me = apf::createMeshElement(this->m, e);
-		apf::Element* field_element = apf::createElement(this->field, me);
-
-		/*recover the stress for each of the integration points*/
-		int n_entity_nodes = apf::countNodes(field_element);
-		assert(n_entity_nodes >= 0);
-		for(uint32_t ii =0; ii < static_cast<uint32_t>(n_entity_nodes); ++ii) {
-			apf::Vector3 xi;
-			fs->getNodeXi(entity_type, ii, xi);
-
-			std::cout << ii << ": " << xi << std::endl;
-
-			// apf::NewArray<apf::Vector3> gradShape;
-			// apf::getShapeGrads(field_element, p, gradShape);
-
-
-			// apf::NewArray< apf::Matrix< 3,2 > > B(this->nnodes);
-			// /*construct each of the nnodes shape function matricies*/
-			// uint32_t ii, jj;
-			// for(ii = 0; ii < this->nnodes; ++ii) {
-			// 	B[ii][0][0] = gradShape[ii][0];
-			// 	B[ii][0][1] = 0.0;
-			// 	B[ii][1][0] = 0.0;
-			// 	B[ii][1][1] = gradShape[ii][1];
-			// 	B[ii][2][0] = gradShape[ii][1];
-			// 	B[ii][2][1] = gradShape[ii][0];
-			// }
-
-		}
-		std::cout << "-------------------" << std::endl;
-		apf::destroyElement(field_element);
-		apf::destroyMeshElement(me);
+		/*fill in integrator*/
 	}
 	this->m->end(it);
 

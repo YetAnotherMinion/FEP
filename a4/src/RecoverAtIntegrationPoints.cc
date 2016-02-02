@@ -1,8 +1,8 @@
 #include <apfMesh.h>
 
-#include "RecoveryIntegrator.h"
+#include "RecoverAtIntegrationPoints.h"
 
-template<unsigned int N> RecoveryIntegrator<N>::RecoveryIntegrator(
+template<unsigned int N> RecoverAtIntegrationPoints<N>::RecoverAtIntegrationPoints(
     apf::Field* f,
     apf::Numbering* nodeNums,
     const apf::Matrix< N,N > & (*stiffness_function)(apf::Vector3),
@@ -15,7 +15,7 @@ template<unsigned int N> RecoveryIntegrator<N>::RecoveryIntegrator(
     ndims = apf::getMesh(f)->getDimension();
 }
 
-template<unsigned int N> void RecoveryIntegrator<N>::inElement(apf::MeshElement* me)
+template<unsigned int N> void RecoverAtIntegrationPoints<N>::inElement(apf::MeshElement* me)
 {
     /*create the Field Element from the MeshElement*/
     this->field_element = apf::createElement(this->field, me);
@@ -24,14 +24,14 @@ template<unsigned int N> void RecoveryIntegrator<N>::inElement(apf::MeshElement*
     this->ndofs = this->ndims * apf::countNodes(this->field_element);
 }
 
-template<unsigned int N> void RecoveryIntegrator<N>::outElement()
+template<unsigned int N> void RecoverAtIntegrationPoints<N>::outElement()
 {
     /*perform clean up and destroy specific field element*/
     apf::destroyElement(this->field_element);
 }
 
 
-template<unsigned int N> void RecoveryIntegrator<N>::atPoint(apf::Vector3 const& p, double w, double dV)
+template<unsigned int N> void RecoverAtIntegrationPoints<N>::atPoint(apf::Vector3 const& p, double w, double dV)
 {
     // below two lines do not appear to be used [Jan 14 2016]
     // apf::NewArray<double> shape_val;

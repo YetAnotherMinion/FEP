@@ -90,16 +90,91 @@ protected:
 
 };
 
-TEST(AlgebraicSystemTest, AssembleForceInsertionTest)
+TEST_F(AlgebraicSystemTest, AssembleMultipleContributions)
 {
 	/*in this test we check that force vector contributions
 	* are assembled correctly, we will use 3 sets of force vector
 	* contributions to test that insertions are additive, and
 	* that adding both positive and negative values are supported
 	*/
+	AlgebraicSystem linsys(nGlobalDOFs);
+	/*make sure that if the nGlobalDOFs is changed by future
+	* dev that the hard coded indices are not invalidated.*/
+	ASSERT_LE(12, nGlobalDOFs);
 
 
+	std::set<int> mapped_indices = {0, 7, static_cast<int>(nGlobalDOFs-1)};
+	/*test single length vector*/
+	std::vector<double> elm_1 = {1.0, 10.0, 100.0};
+	can::NewArray<int> elm_1_mapping(3);
+	elm_1_mapping[0] = 0;
+	elm_1_mapping[1] = 7;
+	elm_1_mapping[2] = nGlobalDOFs-1;
+	/*use a separate objects for the second contribution*/
+	std::vector<double> elm_2 = {1.5, 19.0};
+	can::NewArray<int> elm_2_mapping(2);
+	elm_2_mapping[0] = 0;
+	elm_2_mapping[1] = nGlobalDOFs-1;
+	/*use a mapping vector that has non monotonic indices*/
+	std::vector<double> elm_3 = {7.1, 0.1};
+	can::NewArray<int> elm_3_mapping(2);
+	elm_3_mapping[0] = nGlobalDOFs-1;
+	elm_3_mapping[1] = 7;
 
+
+	std::vector<double> other_dofs;
+	std::size_t other_dof_size = nGlobalDOFs - mapped_indices.size();
+	other_dofs.resize(other_dof_size);
+	can::NewArray<int> other_dofs_mapping(other_dof_size);
+	for(uint32_t ii = 0, jj = 0; ii < nGlobalDOFs; ++ii) {
+		if(mapped_indices.count(ii)) {
+			continue;
+		}
+		other_dofs_mapping[jj] = ii;
+		other_dofs[jj] = 0.0;
+		++jj;
+	}
+
+	linsys.beginAssembly();
+
+	linsys.assemble(elm_1, elm_1_mapping, elm_1.size());
+	linsys.assemble(elm_2, elm_2_mapping, elm_2.size());
+	linsys.assemble(elm_3, elm_3_mapping, elm_3.size());
+	linsys.assemble(other_dofs, other_dofs_mapping, other_dofs.size());
+
+	/*manually extract the displacements so that we do not need
+	* to fill in K and then call AlgebraicSystem.solve()
+	*/
+	PetscScalar *result = new PetscScalar[nGlobalDOFs];
+	PetscInt *all_indicies = new PetscInt[nGlobalDOFs];
+	for(uint32_t ii = 0; ii < nGlobalDOFs; ++ii) {
+		all_indicies[ii] = static_cast<PetscInt>(ii);
+	}
+
+	VecGetValues(linsys.F, static_cast<PetscInt>(nGlobalDOFs), all_indicies, result);
+
+	EXPECT_FLOAT_EQ(elm_1[0] + elm_2[0], result[0]);
+	EXPECT_FLOAT_EQ(elm_1[1] + elm_3[1], result[7]);
+	EXPECT_FLOAT_EQ(elm_1[2] + elm_2[1] + elm_3[0], result[nGlobalDOFs-1]);
+
+
+	/*make sure all other dofs are still zero*/
+	// for(uint32_t ii = 0; )
+
+
+	delete[] all_indicies;
+	delete[] result;
+}
+
+TEST_F(AlgebraicSystemTest, AssembleConstrainedDOFs) {
+	/*in this test we check that force vector contributions
+	* for degrees of freedom with associated boundary conditions
+	* are assembled correctly, we will use 3 sets of force vector
+	* contributions to test that insertions are additive, and
+	* that adding both positive and negative values are supported
+	*/
+	AlgebraicSystem linsys(12);
+	linsys.beginAssembly();
 }
 
 TEST_F(AlgebraicSystemTest, AssembleMatrixInsertionTest) {

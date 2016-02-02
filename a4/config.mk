@@ -3,7 +3,7 @@ CC=gcc
 ifeq ($(CC), gcc)
 	MPIFLAGS+=--std=c++11 -Wno-long-long
 else
-	MPIFLAGS+=-Wno-c++11-long-long
+	MPIFLAGS+=--std=gnu++11 -Wno-c++11-long-long --stdlib=libc++
 endif
 
 # PETSC_DIR=/tmp/packages/petsc-3.6.1

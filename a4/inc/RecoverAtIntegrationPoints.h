@@ -8,11 +8,11 @@
 
 /*template the size of the D to enable this function to*/
 template< uint32_t N >
-class RecoveryIntegrator : public apf::Integrator
+class RecoverAtIntegrationPoints : public apf::Integrator
 {
 public:
     /* Takes a function that computes the D for a point*/
-	RecoveryIntegrator(
+	RecoverAtIntegrationPoints(
         apf::Field *f,
         apf::Numbering *,
         const apf::Matrix< N, N >& (*)(apf::Vector3),
