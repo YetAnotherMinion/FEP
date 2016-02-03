@@ -401,6 +401,7 @@ TEST_P(SampleProblems, ZeroConstraintZeroTraction) {
 		// std::cout << "x = " << pair.first << ":" << std::endl;
 		// std::cout << "\te = " << pair.second << std::endl << std::endl;
 	};
+	EXPECT_FLOAT_EQ(0.0, tmp.strain_energy);
 
 	delete geo_map;
 }
@@ -425,8 +426,6 @@ TEST_P(SampleProblems, LinearTraction) {
 	uint32_t integration_order = 4;
 	bool reorder_flag = true;
 
-
-	/*currently unused*/
 	GeometryMappings* geo_map = new GeometryMappings();
 
 	void (*cnstr_ptr)(apf::MeshEntity*, apf::Mesh*, apf::Numbering*, std::vector<uint64_t> &, std::vector<double> &);
@@ -462,13 +461,9 @@ TEST_P(SampleProblems, LinearTraction) {
 		EXPECT_NEAR(pair.second[0] * -Nu, pair.second[1], 1e-13);
 		/* zero strain in Z to satisfy our intial assumptions*/
 		EXPECT_NEAR(0.0, pair.second[2], 1e-13);
-		// std::cout << "x = " << pair.first << ":" << std::endl;
-		// std::cout << "\te = " << pair.second << std::endl << std::endl;
 	}
 	for(auto pair : tmp.stress) {
 		EXPECT_FLOAT_EQ(LINEAR_X_LOAD, pair.second[0]);
-		// std::cout << "x = " << pair.first << ":" << std::endl;
-		// std::cout << "\ts = " << pair.second << std::endl << std::endl;
 	}
 
 	delete geo_map;

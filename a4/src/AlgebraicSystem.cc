@@ -140,7 +140,6 @@ void AlgebraicSystem::addBoundaryConstraint(
 			this->known_d.push_back(fixed[ii]);
 		}
 	}
-
 }
 
 void AlgebraicSystem::beginAssembly() {
@@ -319,9 +318,9 @@ void AlgebraicSystem::assemble(
 			ix[ni] = (PetscInt) (tmp_val & SAMPLE_LOW_32_BITS);
 			add_to_f_col.push_back(ii);
 			local_displacements.push_back(this->known_d[(tmp_val & SAMPLE_LOW_32_BITS)]);
-			
+		#if DEBUG_PRINT
 			std::cout << "col contributes to force vector: " << ii << " mapping: " << node_mapping[ii] <<  std::endl;
-			
+		#endif	
 			++ni;
 		}
 	}

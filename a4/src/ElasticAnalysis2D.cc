@@ -415,7 +415,5 @@ uint32_t ElasticAnalysis2D::recover()
 	/*Compute*/
 	this->strain_energy *= 0.5;
 
-	std::cout << "==============Recovered=============" << std::endl;
-
 	return 0;
 }
