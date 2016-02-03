@@ -41,8 +41,8 @@ public:
 	virtual uint32_t recover();
 	
 	std::vector<double> displacement;
-	std::vector<double> strain;
-	std::vector<double> stress;
+	std::vector< std::pair<apf::Vector3, apf::Vector<3> > > strain;
+	std::vector< std::pair<apf::Vector3, apf::Vector<3> > > stress;
 	double strain_energy;
 
 	AlgebraicSystem* linsys;

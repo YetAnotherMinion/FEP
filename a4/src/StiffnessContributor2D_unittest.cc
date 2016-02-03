@@ -19,7 +19,7 @@
 #include "ElasticAnalysis2D.h"
 #include "MeshAdjReorder.h" 
 
-enum MeshTypes {
+enum class MeshTypes {
 	LINEAR_QUAD,
 	QUADRATIC_QUAD,
 	LINEAR_TRI,
@@ -54,25 +54,25 @@ protected:
 		int X_ELMS = 2;
 		int Y_ELMS = 1;
 		switch(index) {
-			case LINEAR_QUAD:
+			case MeshTypes::LINEAR_QUAD:
 				mesh_builder->build2DRectQuadMesh(this->mesh, 2, 1, 0.0, 0.0, 2.0, 1.0);
 				apf::changeMeshShape(this->mesh, apf::getLagrange(1));
 				break;
-			case QUADRATIC_QUAD:
+			case MeshTypes::QUADRATIC_QUAD:
 				this->mesh_builder->build2DRectQuadMesh(this->mesh, X_ELMS, Y_ELMS,
 					0.0, 0.0, 2.0, 2.0);
 				apf::changeMeshShape(this->mesh, apf::getLagrange(2));
 				break;
-			case LINEAR_TRI:
+			case MeshTypes::LINEAR_TRI:
 				this->mesh_builder->build2DRectTriMesh(this->mesh, X_ELMS, Y_ELMS,
 					0.0, 0.0, 2.0, 2.0);
 				break;
-			case QUADRATIC_TRI:
+			case MeshTypes::QUADRATIC_TRI:
 				this->mesh_builder->build2DRectTriMesh(this->mesh, X_ELMS, Y_ELMS,
 					0.0, 0.0, 2.0, 2.0);
 				apf::changeMeshShape(this->mesh, apf::getLagrange(2));
 				break;
-			case SERENDIPITY_QUAD:
+			case MeshTypes::SERENDIPITY_QUAD:
 				this->mesh_builder->build2DRectQuadMesh(this->mesh, X_ELMS, Y_ELMS,
 					0.0, 0.0, 2.0, 2.0);
 				apf::changeMeshShape(this->mesh, apf::getSerendipity());
@@ -107,18 +107,18 @@ protected:
 
 /*C++ allows us to leave off the "struct" in a typename*/
 INSTANTIATE_TEST_CASE_P(DifferentMeshOrders, StiffnessTest,
-	::testing::Values(  test_parameters_wrapper(LINEAR_QUAD, 2),
-					  	test_parameters_wrapper(LINEAR_QUAD,3),
-					  	test_parameters_wrapper(LINEAR_QUAD,4),
-					  	test_parameters_wrapper(QUADRATIC_QUAD,3),
-					  	test_parameters_wrapper(QUADRATIC_QUAD,4),
-					  	test_parameters_wrapper(LINEAR_TRI,2),
-					  	test_parameters_wrapper(LINEAR_TRI,3),
-					  	test_parameters_wrapper(LINEAR_TRI,4),
-					  	test_parameters_wrapper(QUADRATIC_TRI,3),
-					  	test_parameters_wrapper(QUADRATIC_TRI,4),
-					  	test_parameters_wrapper(SERENDIPITY_QUAD,3),
-					  	test_parameters_wrapper(SERENDIPITY_QUAD,4)));
+	::testing::Values(  test_parameters_wrapper(MeshTypes::LINEAR_QUAD, 2),
+					  	test_parameters_wrapper(MeshTypes::LINEAR_QUAD,3),
+					  	test_parameters_wrapper(MeshTypes::LINEAR_QUAD,4),
+					  	test_parameters_wrapper(MeshTypes::QUADRATIC_QUAD,3),
+					  	test_parameters_wrapper(MeshTypes::QUADRATIC_QUAD,4),
+					  	test_parameters_wrapper(MeshTypes::LINEAR_TRI,2),
+					  	test_parameters_wrapper(MeshTypes::LINEAR_TRI,3),
+					  	test_parameters_wrapper(MeshTypes::LINEAR_TRI,4),
+					  	test_parameters_wrapper(MeshTypes::QUADRATIC_TRI,3),
+					  	test_parameters_wrapper(MeshTypes::QUADRATIC_TRI,4),
+					  	test_parameters_wrapper(MeshTypes::SERENDIPITY_QUAD,3),
+					  	test_parameters_wrapper(MeshTypes::SERENDIPITY_QUAD,4)));
 
 TEST_P(StiffnessTest, StiffnessIsSymmetric) {
 	/*use a linear quad*/
@@ -384,7 +384,6 @@ TEST_P(LocalStiffnessMatrixTest, DifferentLocations) {
 	this->D[1][1] = 1;
 	this->D[2][2] = 1;
 	/*set up element numberings we will use for assembly*/
-	uint32_t num_components = 2;
 
 	apf::MeshIterator* it;
 	apf::MeshEntity* e1, *e2;
@@ -394,7 +393,8 @@ TEST_P(LocalStiffnessMatrixTest, DifferentLocations) {
 	it = m2->begin(2);
 	e2 = m2->iterate(it);
 	m2->end(it);
-	
+	/*configure the precision of the integration to something that will
+	* exactly integrate second order*/
 	this->integration_order = 4;
 	StiffnessContributor2D stiff1(field1, this->D, this->integration_order);
 

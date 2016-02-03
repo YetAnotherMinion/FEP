@@ -18,7 +18,9 @@ public:
         apf::Field *f,
         const apf::Matrix< N, N >,
         std::vector< apf::Vector<COMPONENTS> > &,
-        uint32_t integrate_order);
+        uint32_t integrate_order,
+        std::vector< std::pair<apf::Vector3, apf::Vector<N> > > * stress,
+        std::vector< std::pair<apf::Vector3, apf::Vector<N> > > * strain);
 
 	void inElement(apf::MeshElement *me);
     void outElement();
@@ -26,8 +28,8 @@ public:
     void generate_B(apf::Element*, apf::NewArray < apf::Matrix< N, COMPONENTS > > & B, apf::Vector3 const & point);
 
     /*the first member is the location in space, the second member*/
-    std::vector< std::pair<apf::Vector3, apf::Vector<N> > > strain;
-    std::vector< std::pair<apf::Vector3, apf::Vector<N> > > stress;
+    std::vector< std::pair<apf::Vector3, apf::Vector<N> > > * strain;
+    std::vector< std::pair<apf::Vector3, apf::Vector<N> > > * stress;
     std::vector<double> energy; /*will hold the strain energy per element*/
 private:
     apf::Field* field;
@@ -44,8 +46,15 @@ template<uint32_t N, uint32_t M> RecoverAtIntegrationPoints<N, M>::RecoverAtInte
     apf::Field* f,
     const apf::Matrix< N,N > D,
     std::vector<apf::Vector<M> > & local_disp,
-    uint32_t integrate_order) : apf::Integrator(integrate_order), field(f), D(D),
-                     local_displacements(local_disp)
+    uint32_t integrate_order,
+    std::vector< std::pair<apf::Vector3, apf::Vector<N> > > * in_strain,
+    std::vector< std::pair<apf::Vector3, apf::Vector<N> > > * in_stress) : 
+        apf::Integrator(integrate_order),
+        strain(in_strain),
+        stress(in_stress),
+        field(f),
+        D(D),
+        local_displacements(local_disp)
 {
     /*we could reserve space in the strain and stress vectors here
     * if we wanted to find the numer*/
@@ -87,10 +96,10 @@ template<uint32_t N, uint32_t M> void RecoverAtIntegrationPoints<N, M>::atPoint(
     /*map local coordinates into global space*/
     strain_at_point = strain_at_point * dV;
 
-    this->strain.push_back(std::make_pair(p, strain_at_point));
+    this->strain->push_back(std::make_pair(p, strain_at_point));
     apf::Vector<N> stress_at_point;
     stress_at_point = D * strain_at_point;
-    this->stress.push_back(std::make_pair(p, stress_at_point));
+    this->stress->push_back(std::make_pair(p, stress_at_point));
 }
 
 /*throw exception if we have not specialized a template for a specific

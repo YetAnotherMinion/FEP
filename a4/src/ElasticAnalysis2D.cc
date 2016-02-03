@@ -386,7 +386,9 @@ uint32_t ElasticAnalysis2D::recover()
 			this->field,
 			this->D,
 			nodal_displacements,
-			this->integration_order);
+			this->integration_order,
+			&this->strain,
+			&this->stress);
 
 		StiffnessContributor2D elm_stiffness(this->field,
 											 this->D,
@@ -408,16 +410,16 @@ uint32_t ElasticAnalysis2D::recover()
 		std::cout << "element energy = " << element_energy << std::endl;
 		this->strain_energy += element_energy;
 
-
-		for(auto pair : recovery_helper.strain) {
-			std::cout << "x = " << pair.first << ":" << std::endl;
-			std::cout << "\te = " << pair.second << std::endl << std::endl;
-		}
 		apf::destroyMeshElement(me);
 	}
 	this->m->end(it);
 	/*Compute*/
 	this->strain_energy *= 0.5;
+
+	for(auto pair : this->strain) {
+		std::cout << "x = " << pair.first << ":" << std::endl;
+		std::cout << "\te = " << pair.second << std::endl << std::endl;
+	}
 
 	std::cout << "==============Recovered=============" << std::endl;
 

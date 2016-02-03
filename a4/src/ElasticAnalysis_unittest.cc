@@ -261,8 +261,9 @@ TEST_F(ElasticAnalysisTest, PlaneStrainComputation) {
 
 TEST_F(ElasticAnalysisTest, PlaneStressComputation) {
 	double E = 8e8;
-	/*impossible for Nu to go over 0.5*/
 	double Nu = 0.35;
+	/*impossible for Nu to go over 0.5*/
+	ASSERT_LE(Nu, 0.5);
 
 	/*manually compute D using different method*/
 	double mult_factor = E /(1- Nu * Nu);
@@ -385,4 +386,8 @@ TEST_P(SampleProblems, ZeroConstraintZeroTraction) {
 	}
 
 	delete geo_map;
+}
+
+TEST_P(SampleProblems, LinearTraction) {
+	
 }
