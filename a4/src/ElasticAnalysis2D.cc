@@ -5,6 +5,7 @@
 #include "MeshBuilder.h"/*gives us the entity tags used find constraints
 						* and boundary conditions */
 #include "GeometryMappings.h" /*gives us the special enity tags enum*/
+#include "RecoverAtIntegrationPoints.h"
 
 #include <fstream>
 #include <assert.h>
@@ -54,12 +55,6 @@ ElasticAnalysis2D::ElasticAnalysis2D(struct ElasticAnalysisInput & in) :
 	/*thisfield will store the resulting displacments*/
 	this->disp_field = apf::createFieldOn(this->m, DISPLACEMENT_FIELD_NAME, apf::VECTOR);
 	apf::zeroField(this->disp_field);
-
-	this->strain_field = apf::createField(this->m, STRAIN_FIELD_NAME, apf::VECTOR, apf::getIPShape(this->m->getDimension(), this->integration_order));
-	apf::zeroField(this->strain_field);
-
-	this->stress_field = createField(this->m, STRESS_FIELD_NAME, apf::VECTOR, apf::getIPShape(this->m->getDimension(), this->integration_order));
-	apf::zeroField(this->stress_field);
 
 	bool use_plane_stress = true;
 	this->D = buildD(in.E, in.Nu, use_plane_stress);
@@ -191,13 +186,7 @@ uint32_t ElasticAnalysis2D::makeStiffnessContributor(apf::MeshEntity* e)
 		/*we want to make sure that our guess for the vector was the right size
 		* so we know how many degress of freedom our nodes have*/
 		assert((uint32_t)tmp_sz == n_l_dofs);
-
-		// std::cout << stiff.ke << std::endl;
-		// std::cout << "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@" << std::endl;
-
 		this->linsys->assemble(stiff.ke, node_mapping, tmp_sz);
-		// std::cout << "---------------------------------" << std::endl;
-
 	} else {
 		/*only accepts faces, so indicate improper input*/
 		std::cout << "entity type: " << entity_type << std::endl;
@@ -288,7 +277,11 @@ uint32_t ElasticAnalysis2D::makeConstraint(apf::MeshEntity* e)
 	{
 		// std::cout << "found key" << std::endl;
 		/*retrieve the specifc boundary contion from the store and evaluate it*/
-		void(*fnc_ptr)(apf::MeshEntity*, apf::Mesh*, apf::Numbering*, std::vector< uint64_t >&, std::vector < double > & );
+		void(*fnc_ptr)(apf::MeshEntity*,
+					   apf::Mesh*,
+					   apf::Numbering*,
+					   std::vector< uint64_t >&,
+					   std::vector < double > & );
 		fnc_ptr = this->geometry_map->dirchelet_map[tag_data];
 		std::vector< uint64_t > fixed_mapping(0);
 		std::vector< double > displacement(0);
@@ -323,10 +316,6 @@ uint32_t ElasticAnalysis2D::recover()
 	assert(NUM_COMPONENTS <= 3);
 	apf::FieldShape* fs = apf::getShape(this->disp_field);
 
-	int components = apf::countComponents(this->disp_field);
-	std::cout << "Number of components: " << components << std::endl;
-
-
 	for(std::size_t dim = 0; dim <= 2; ++dim) {
 		if(fs->hasNodesIn(dim)) {
 			it = this->m->begin(dim);
@@ -356,14 +345,63 @@ uint32_t ElasticAnalysis2D::recover()
 			this->m->end(it);
 		}
 	}
+	/*to find the strain energy we compute first rhs = Ku, then
+	* multiply by transpose(u) * rhs which is just the dot product.
+	* Then we multiply by 1/2. First we will compute the*/
+
+
 	/*Stiffness contributors for 2D mesh are only the faces*/
 	it = this->m->begin(2);
-	// const apf::Matrix< 3, 3 > & isotropic(apf::Vector3 point) {
-		/*use the values of D*/
-	// RecoveryIntegrator<3> foo(this->disp_field, this->nodeNums, )
-
 	while((e = this->m->iterate(it))){
 		/*fill in integrator*/
+		/*extract the local displacements for this element*/
+		int entity_type = this->m->getType(e);
+		int n_elm_nodes = apf::countElementNodes(this->m->getShape(), entity_type);
+		uint32_t n_l_dofs = n_elm_nodes * NUM_COMPONENTS;
+		apf::NewArray< int > node_mapping(n_l_dofs);
+		int tmp_sz = apf::getElementNumbers(this->nodeNums, e, node_mapping);
+		assert(tmp_sz >= 0);
+		assert((uint32_t)tmp_sz == n_l_dofs);
+
+		/*squash global dofs into per element dofs*/
+		std::vector< apf::Vector<2> > local_displacements(n_elm_nodes);
+		/*use the convention [x0, y0, x1, y1, x2, ...] for the order
+		* of the local dofs in the node_mapping vector*/
+		for(uint32_t ii = 0; ii < static_cast<uint32_t>(n_elm_nodes); ++ii) {
+			double tmp_components[NUM_COMPONENTS];
+			for(uint32_t jj = 0; jj < NUM_COMPONENTS; ++jj) {
+				tmp_components[jj] = node_mapping[ii * NUM_COMPONENTS + jj];
+			}
+			local_displacements[ii] = apf::Vector<NUM_COMPONENTS>(tmp_components);
+		}
+		RecoverAtIntegrationPoints<3, 2> recovery_helper(
+			this->field,
+			this->D,
+			local_displacements,
+			this->integration_order);
+
+		StiffnessContributor2D elm_stiffness(this->field,
+												  this->D,
+												  this->integration_order);
+		apf::MeshElement* me = apf::createMeshElement(this->m, e);
+		//recovery_helper.process(me);
+		elm_stiffness.process(me);
+		/*compute part of the strain energy Kd */
+		std::vector<double> tmp_rhs;
+		assert(n_l_dofs == elm_stiffness.getNumberOfDOFs());
+		apf::DynamicVector ke_row(n_l_dofs);
+
+		for(uint32_t ii = 0; ii < n_l_dofs; ++ii) {
+
+			tmp_rhs[ii] = 0;
+		}
+
+
+		for(auto pair : recovery_helper.stress) {
+			std::cout << "x = (" << pair.first << "):" << std::endl;
+			std::cout << "\te = (" << pair.second << ")" << std::endl;
+		}
+		apf::destroyMeshElement(me);
 	}
 	this->m->end(it);
 

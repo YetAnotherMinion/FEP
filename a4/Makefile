@@ -109,7 +109,8 @@ $(ODIR)/SimpleRectMesh_unittest.o : $(SDIR)/SimpleRectMesh_unittest.cc \
 	mpicxx $(CPPFLAGS) $(MPIFLAGS) $(PUMI_INC) -c $< -o $@
 
 $(ODIR)/ElasticAnalysis2D.o : 	$(SDIR)/ElasticAnalysis2D.cc \
-								$(IDIR)/ElasticAnalysis2D.h
+								$(IDIR)/ElasticAnalysis2D.h \
+								$(IDIR)/RecoverAtIntegrationPoints.h
 	mpicxx $(CPPFLAGS) $(MPIFLAGS) $(PETSC_INC) $(PUMI_INC) -c $< -o $@
 
 $(ODIR)/ElasticAnalysis_unittest.o : 	$(SDIR)/ElasticAnalysis_unittest.cc \
@@ -125,10 +126,6 @@ $(ODIR)/ShapeFunctionOrdering_unittest.o : 	$(SDIR)/ShapeFunctionOrdering_unitte
 $(ODIR)/StiffnessContributor2D.o : 	$(SDIR)/StiffnessContributor2D.cc \
 								$(IDIR)/StiffnessContributor2D.h \
 								$(GTEST_HEADERS)
-	mpicxx $(CPPFLAGS) $(MPIFLAGS) $(PUMI_INC) -c $< -o $@
-
-$(ODIR)/RecoverAtIntegrationPoints.o : 	$(SDIR)/RecoverAtIntegrationPoints.cc \
-								$(IDIR)/RecoverAtIntegrationPoints.h
 	mpicxx $(CPPFLAGS) $(MPIFLAGS) $(PUMI_INC) -c $< -o $@
 
 $(ODIR)/ForceContributor2D.o : 	$(SDIR)/ForceContributor2D.cc \
@@ -176,7 +173,6 @@ $(BDIR)/a4 : 	$(ODIR)/a4.o $(ODIR)/MeshBuilder.o $(ODIR)/MeshBuilder_unittest.o 
 				$(ODIR)/GeometryMappings.o \
 				$(ODIR)/GeometryMappings_unittest.o \
 				$(ODIR)/StiffnessContributor2D_unittest.o \
-				$(ODIR)/RecoverAtIntegrationPoints.o \
 				$(LDIR)/gtest.a
 	mpicxx $(CPPFLAGS) $(CXXFLAGS) $(PETSC_LIB) $(PUMI_LIBS) $^ -lpetsc -lmds -lapf -lgmi -lpcu -llion -lmth -lpthread  -o $@
 
