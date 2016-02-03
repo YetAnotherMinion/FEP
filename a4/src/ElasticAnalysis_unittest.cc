@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <iomanip>
+#include <string>
 
 #include <gtest/gtest.h>
 
@@ -298,6 +299,7 @@ class SampleProblems : public ::testing::Test,
 protected:
 	apf::Mesh2* mesh;
 	MeshBuilder* mesh_builder;
+	std::string suffix;
 
 	apf::Mesh2* getMeshFromIndex(MeshTypes index, int X_ELMS, int Y_ELMS) {
 		apf::Mesh2* tmp = NULL;
@@ -305,25 +307,30 @@ protected:
 			case MeshTypes::LINEAR_QUAD:
 				this->mesh_builder->build2DRectQuadMesh(tmp, X_ELMS, Y_ELMS,
 					0.0, 0.0, 2.0, 2.0);
+				this->suffix = "_linear_quad";
 				break;
 			case MeshTypes::QUAD_QUAD:
 				this->mesh_builder->build2DRectQuadMesh(tmp, X_ELMS, Y_ELMS,
 					0.0, 0.0, 2.0, 2.0);
 				apf::changeMeshShape(tmp, apf::getLagrange(2));
+				this->suffix = "_quadratic_quad";
 				break;
 			case MeshTypes::LINEAR_TRI:
 				this->mesh_builder->build2DRectTriMesh(tmp, X_ELMS, Y_ELMS,
 					0.0, 0.0, 2.0, 2.0);
+				this->suffix = "_linear_tri";
 				break;
 			case MeshTypes::QUAD_TRI:
 				this->mesh_builder->build2DRectTriMesh(tmp, X_ELMS, Y_ELMS,
 					0.0, 0.0, 2.0, 2.0);
 				apf::changeMeshShape(tmp, apf::getLagrange(2));
+				this->suffix = "_quadratic_tri";
 				break;
 			case MeshTypes::SERENDIPITY_QUAD:
 				this->mesh_builder->build2DRectQuadMesh(tmp, X_ELMS, Y_ELMS,
 					0.0, 0.0, 2.0, 2.0);
 				apf::changeMeshShape(tmp, apf::getSerendipity());
+				this->suffix = "_quadratic_serendipity";
 				break;
 			default:
 				/*mesh should stay null*/
@@ -336,6 +343,7 @@ protected:
 		/*use mesh builder to abstract mesh creations*/
 		mesh_builder = new MeshBuilder();
 		mesh = NULL;
+		suffix = "";
 	}
 
 	virtual void TearDown() {
@@ -385,9 +393,83 @@ TEST_P(SampleProblems, ZeroConstraintZeroTraction) {
 		EXPECT_FLOAT_EQ(0.0, tmp.displacement[ii]);
 	}
 
+	for(auto pair : tmp.strain) {
+		/*each strain component should be zero*/
+		for(uint32_t ii; ii < 3; ++ii) {
+			EXPECT_FLOAT_EQ(0.0, pair.second[ii]);
+		}
+		// std::cout << "x = " << pair.first << ":" << std::endl;
+		// std::cout << "\te = " << pair.second << std::endl << std::endl;
+	};
+
 	delete geo_map;
 }
 
+#define LINEAR_X_LOAD 1000.0
+
+apf::Vector3 SampleLinearLoad_X(apf::Vector3 const & p)
+{
+	return apf::Vector3(LINEAR_X_LOAD, 0, 0);
+}
+
 TEST_P(SampleProblems, LinearTraction) {
-	
+	MeshTypes index = GetParam();
+	uint32_t X_ELMS = 2;
+	uint32_t Y_ELMS = 1;
+	apf::Mesh2* mesh = this->getMeshFromIndex(index, X_ELMS, Y_ELMS);
+	ASSERT_TRUE(mesh != NULL);
+	/*physical parameters*/
+	double E, Nu;
+	E = 8e8;
+	Nu = 0.35;
+	uint32_t integration_order = 4;
+	bool reorder_flag = true;
+
+
+	/*currently unused*/
+	GeometryMappings* geo_map = new GeometryMappings();
+
+	void (*cnstr_ptr)(apf::MeshEntity*, apf::Mesh*, apf::Numbering*, std::vector<uint64_t> &, std::vector<double> &);
+	cnstr_ptr = &zeroDisplacementX_2D;
+	geo_map->addDircheletMapping(LEFT_EDGE, cnstr_ptr);
+	cnstr_ptr = &zeroDisplacementY_2D;
+	//geo_map->addDircheletMapping(LEFT_EDGE, cnstr_ptr);
+	//geo_map->addDircheletMapping(TOP_EDGE, cnstr_ptr);
+	geo_map->addDircheletMapping(BOT_EDGE, cnstr_ptr);
+
+	apf::Vector3 (*traction_ptr)(apf::Vector3 const &);
+	traction_ptr = &SampleLinearLoad_X;
+	geo_map->addNeumannMapping(RIGHT_EDGE, traction_ptr);
+
+	struct ElasticAnalysisInput input = {
+			mesh,
+			geo_map,
+			integration_order,
+			E,
+			Nu,
+			reorder_flag};
+
+	ElasticAnalysis2D tmp(input);
+
+	EXPECT_EQ(0, tmp.setup());
+	EXPECT_EQ(0, tmp.solve());
+	EXPECT_EQ(0, tmp.recover());
+
+	/*expect uniform stresses*/
+	for(auto pair : tmp.strain) {
+		/*linear test should have strain in perpendicular direction
+		* following Hook's law*/
+		EXPECT_NEAR(pair.second[0] * -Nu, pair.second[1], 1e-13);
+		/* zero strain in Z to satisfy our intial assumptions*/
+		EXPECT_NEAR(0.0, pair.second[2], 1e-13);
+		// std::cout << "x = " << pair.first << ":" << std::endl;
+		// std::cout << "\te = " << pair.second << std::endl << std::endl;
+	}
+	for(auto pair : tmp.stress) {
+		EXPECT_FLOAT_EQ(LINEAR_X_LOAD, pair.second[0]);
+		// std::cout << "x = " << pair.first << ":" << std::endl;
+		// std::cout << "\ts = " << pair.second << std::endl << std::endl;
+	}
+
+	delete geo_map;
 }

@@ -82,6 +82,10 @@ template<uint32_t N, uint32_t M> void RecoverAtIntegrationPoints<N, M>::atPoint(
     apf::NewArray<apf::Vector3> gradShape;
     apf::getShapeGrads(this->field_element, p, gradShape);
 
+    apf::Vector3 x;
+    apf::MeshElement* me = apf::getMeshElement(this->field_element);
+    apf::mapLocalToGlobal(me, p, x);
+
     apf::NewArray< apf::Matrix< N, M > > B(this->nnodes);
     this->generate_B(field_element, B, p);
     /*compute the strain at this point*/
@@ -94,12 +98,12 @@ template<uint32_t N, uint32_t M> void RecoverAtIntegrationPoints<N, M>::atPoint(
     }
 
     /*map local coordinates into global space*/
-    strain_at_point = strain_at_point * dV;
+    // strain_at_point = strain_at_point * dV;
 
-    this->strain->push_back(std::make_pair(p, strain_at_point));
+    this->strain->push_back(std::make_pair(x, strain_at_point));
     apf::Vector<N> stress_at_point;
     stress_at_point = D * strain_at_point;
-    this->stress->push_back(std::make_pair(p, stress_at_point));
+    this->stress->push_back(std::make_pair(x, stress_at_point));
 }
 
 /*throw exception if we have not specialized a template for a specific

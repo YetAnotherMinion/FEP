@@ -407,7 +407,6 @@ uint32_t ElasticAnalysis2D::recover()
 			tmp_rhs[ii] = ke_row * elm_displacements;
 		}
 		double element_energy = tmp_rhs * elm_displacements;
-		std::cout << "element energy = " << element_energy << std::endl;
 		this->strain_energy += element_energy;
 
 		apf::destroyMeshElement(me);
@@ -415,11 +414,6 @@ uint32_t ElasticAnalysis2D::recover()
 	this->m->end(it);
 	/*Compute*/
 	this->strain_energy *= 0.5;
-
-	for(auto pair : this->strain) {
-		std::cout << "x = " << pair.first << ":" << std::endl;
-		std::cout << "\te = " << pair.second << std::endl << std::endl;
-	}
 
 	std::cout << "==============Recovered=============" << std::endl;
 
