@@ -57,6 +57,7 @@ protected:
 				this->mesh_builder->build2DRectQuadMesh(tmp, X_ELMS, Y_ELMS,
 					0.0, 0.0, 2.0, 2.0);
 				apf::changeMeshShape(tmp, apf::getSerendipity());
+				break;
 			default:
 				/*mesh should stay null*/
 				break;

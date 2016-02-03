@@ -10,20 +10,20 @@
 
 /*template the size of the D to enable this function to work for
 * 2D and 3D problems*/
-template< uint32_t N, uint32_t M_COMPONENTS >
+template< uint32_t N, uint32_t COMPONENTS >
 class RecoverAtIntegrationPoints : public apf::Integrator
 {
 public:
 	RecoverAtIntegrationPoints(
         apf::Field *f,
         const apf::Matrix< N, N >,
-        std::vector< apf::Vector<M_COMPONENTS> > &,
+        std::vector< apf::Vector<COMPONENTS> > &,
         uint32_t integrate_order);
 
 	void inElement(apf::MeshElement *me);
     void outElement();
     void atPoint(apf::Vector3 const& p, double w, double dV);
-    void generate_B(apf::Element*, apf::NewArray < apf::Matrix< N, M_COMPONENTS > > & B, apf::Vector3 const & point);
+    void generate_B(apf::Element*, apf::NewArray < apf::Matrix< N, COMPONENTS > > & B, apf::Vector3 const & point);
 
     /*the first member is the location in space, the second member*/
     std::vector< std::pair<apf::Vector3, apf::Vector<N> > > strain;
@@ -36,7 +36,7 @@ private:
     uint32_t ndofs; /*gets updated per element processed*/
     uint32_t nnodes;
     uint32_t ndims;
-    std::vector< apf::Vector<M_COMPONENTS> > & local_displacements;
+    std::vector< apf::Vector<COMPONENTS> > & local_displacements;
 };
 /*----------Implementation----------------*/
 
@@ -70,27 +70,23 @@ template<uint32_t N, uint32_t M> void RecoverAtIntegrationPoints<N, M>::outEleme
 
 template<uint32_t N, uint32_t M> void RecoverAtIntegrationPoints<N, M>::atPoint(apf::Vector3 const& p, double w, double dV)
 {
-    // below two lines do not appear to be used [Jan 14 2016]
-    // apf::NewArray<double> shape_val;
-    // apf::getShapeValues(this->field_element, p, shape_val);
-
     apf::NewArray<apf::Vector3> gradShape;
     apf::getShapeGrads(this->field_element, p, gradShape);
 
-    /*the below three lines do not appear to be used for anything [Dec 12 2015]*/
-    // apf::Vector3 x;
-    // apf::MeshElement* me = apf::getMeshElement(this->field_element);
-    // apf::mapLocalToGlobal(me, p, x);
-
     apf::NewArray< apf::Matrix< N, M > > B(this->nnodes);
     this->generate_B(field_element, B, p);
-
     /*compute the strain at this point*/
     apf::Vector<N> strain_at_point;
+    strain_at_point.zero();
     for(uint32_t ii = 0; ii < this->nnodes; ++ii) {
-        apf::Vector<N> foo;
-
+        apf::Vector<N> node_contribution;
+        node_contribution = B[ii] * this->local_displacements[ii];
+        strain_at_point += node_contribution;
     }
+
+    /*map local coordinates into global space*/
+    strain_at_point = strain_at_point * dV;
+
     this->strain.push_back(std::make_pair(p, strain_at_point));
     apf::Vector<N> stress_at_point;
     stress_at_point = D * strain_at_point;
@@ -104,25 +100,24 @@ template<uint32_t N, uint32_t M> void RecoverAtIntegrationPoints<N, M>::generate
     throw std::runtime_error("Dimensionality not implemented");
 }
 
-// /*template specifications for 2D linear elastic problem*/
-// template<3, 2> void RecoverAtIntegrationPoints<N, M>::generate_B(apf::Element* field_element, apf::NewArray < apf::Matrix<N, M> > & B, apf::Vector3 const & point)
-// {
-//     apf::NewArray<apf::Vector3> gradShape;
-//     apf::getShapeGrads(field_element, point, gradShape);
-//     /*construct each of the nnodes shape function matricies*/
-//     uint32_t ii, jj;
-//     for(ii = 0; ii < this->nnodes; ++ii) {
-//         B[ii][0][0] = gradShape[ii][0];
-//         B[ii][0][1] = 0.0;
-//         B[ii][1][0] = 0.0;
-//         B[ii][1][1] = gradShape[ii][1];
-//         B[ii][2][0] = gradShape[ii][1];
-//         B[ii][2][1] = gradShape[ii][0];
-//     }
-// }
+/*template specifications for 2D linear elastic problem*/
+template<> void RecoverAtIntegrationPoints<3, 2>::generate_B(apf::Element* field_element, apf::NewArray < apf::Matrix<3, 2> > & B, apf::Vector3 const & point)
+{
+    apf::NewArray<apf::Vector3> gradShape;
+    apf::getShapeGrads(field_element, point, gradShape);
+    /*construct each of the nnodes shape function matricies*/
+    for(uint32_t ii = 0; ii < this->nnodes; ++ii) {
+        B[ii][0][0] = gradShape[ii][0];
+        B[ii][0][1] = 0.0;
+        B[ii][1][0] = 0.0;
+        B[ii][1][1] = gradShape[ii][1];
+        B[ii][2][0] = gradShape[ii][1];
+        B[ii][2][1] = gradShape[ii][0];
+    }
+}
 
 // /*template specification for 3D linear elastic problem*/
-// template<6, 3> void RecoverAtIntegrationPoints<N, M>::generate_B(apf::Element* field_element, apf::NewArray < apf::Matrix<N, M> > & B, apf::Vector3 const & p)
+// template<> void RecoverAtIntegrationPoints<6, 3>::generate_B(apf::Element* field_element, apf::NewArray < apf::Matrix<6, 3> > & B, apf::Vector3 const & p)
 // {
     
 // }

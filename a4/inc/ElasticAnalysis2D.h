@@ -43,6 +43,7 @@ public:
 	std::vector<double> displacement;
 	std::vector<double> strain;
 	std::vector<double> stress;
+	double strain_energy;
 
 	AlgebraicSystem* linsys;
 private:
@@ -51,8 +52,6 @@ private:
 	apf::Mesh* m;
 	apf::Field* field;
 	apf::Field* disp_field;
-	apf::Field* strain_field;
-	apf::Field* stress_field;
 	apf::Matrix< 3,3> D;
 	apf::Numbering* nodeNums;
 	apf::Numbering* faceNums;

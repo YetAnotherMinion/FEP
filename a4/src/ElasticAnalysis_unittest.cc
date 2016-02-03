@@ -18,7 +18,7 @@
 #include "AlgebraicSystem.h" /*provides SOLVER_ABSOLUTE_TOLERANCE constant*/
 
 #define YOUNGS_MODULUS  1e8
-#define POISSONS_RATIO -0.35
+#define POISSONS_RATIO 0.35
 
 class ElasticAnalysisTest : public testing::Test
 {
@@ -38,7 +38,6 @@ protected:
 		}
 		delete mesh_builder;	
 	}
-
 };
 
 apf::Vector3 LinearLoad_X(apf::Vector3 const & p)
@@ -101,7 +100,7 @@ TEST_F(ElasticAnalysisTest, AppRunTest) {
 
 	// MatView(tmp.linsys->K, PETSC_VIEWER_STDOUT_WORLD);
 
-	VecView(tmp.linsys->F, PETSC_VIEWER_STDOUT_WORLD);
+	// VecView(tmp.linsys->F, PETSC_VIEWER_STDOUT_WORLD);
 
 
 	EXPECT_EQ(0, tmp.solve());
@@ -290,13 +289,50 @@ TEST_F(ElasticAnalysisTest, PlaneStressComputation) {
 	EXPECT_FLOAT_EQ(result_D[0][0], result_D[1][1]);
 }
 
-class ZeroConstraintZeroTraction : public testing::Test
+enum class MeshTypes { LINEAR_QUAD, QUAD_QUAD, LINEAR_TRI, QUAD_TRI, SERENDIPITY_QUAD };
+
+class SampleProblems : public ::testing::Test,
+	public ::testing::WithParamInterface<MeshTypes> 
 {
 protected:
 	apf::Mesh2* mesh;
 	MeshBuilder* mesh_builder;
 
+	apf::Mesh2* getMeshFromIndex(MeshTypes index, int X_ELMS, int Y_ELMS) {
+		apf::Mesh2* tmp = NULL;
+		switch(index) {
+			case MeshTypes::LINEAR_QUAD:
+				this->mesh_builder->build2DRectQuadMesh(tmp, X_ELMS, Y_ELMS,
+					0.0, 0.0, 2.0, 2.0);
+				break;
+			case MeshTypes::QUAD_QUAD:
+				this->mesh_builder->build2DRectQuadMesh(tmp, X_ELMS, Y_ELMS,
+					0.0, 0.0, 2.0, 2.0);
+				apf::changeMeshShape(tmp, apf::getLagrange(2));
+				break;
+			case MeshTypes::LINEAR_TRI:
+				this->mesh_builder->build2DRectTriMesh(tmp, X_ELMS, Y_ELMS,
+					0.0, 0.0, 2.0, 2.0);
+				break;
+			case MeshTypes::QUAD_TRI:
+				this->mesh_builder->build2DRectTriMesh(tmp, X_ELMS, Y_ELMS,
+					0.0, 0.0, 2.0, 2.0);
+				apf::changeMeshShape(tmp, apf::getLagrange(2));
+				break;
+			case MeshTypes::SERENDIPITY_QUAD:
+				this->mesh_builder->build2DRectQuadMesh(tmp, X_ELMS, Y_ELMS,
+					0.0, 0.0, 2.0, 2.0);
+				apf::changeMeshShape(tmp, apf::getSerendipity());
+				break;
+			default:
+				/*mesh should stay null*/
+				break;
+		}
+		return tmp;
+	} 
+
 	virtual void SetUp() {
+		/*use mesh builder to abstract mesh creations*/
 		mesh_builder = new MeshBuilder();
 		mesh = NULL;
 	}
@@ -305,15 +341,22 @@ protected:
 		if(mesh != NULL) {
 			mesh->destroyNative();
 			apf::destroyMesh(mesh);
-		}
-		delete mesh_builder;	
+		}	
+		delete mesh_builder;
 	}
-
 };
 
-TEST_F(ZeroConstraintZeroTraction, LinearQuad) {
-	mesh_builder->build2DRectQuadMesh(mesh, 2, 1, 0.0, 0.0, 2.0, 2.0);
-	apf::changeMeshShape(mesh, apf::getLagrange(1));
+INSTANTIATE_TEST_CASE_P(GeometryTags, SampleProblems,
+	::testing::Values(MeshTypes::LINEAR_QUAD, MeshTypes::QUAD_QUAD,
+					  MeshTypes::LINEAR_TRI, MeshTypes::QUAD_TRI,
+					  MeshTypes::SERENDIPITY_QUAD));
+
+TEST_P(SampleProblems, ZeroConstraintZeroTraction) {
+	MeshTypes index = GetParam();
+	uint32_t X_ELMS = 4;
+	uint32_t Y_ELMS = 3;
+	apf::Mesh2* mesh = this->getMeshFromIndex(index, X_ELMS, Y_ELMS);
+	ASSERT_TRUE(mesh != NULL);
 	/*physical parameters*/
 	double E, Nu;
 	E = YOUNGS_MODULUS;
@@ -343,137 +386,3 @@ TEST_F(ZeroConstraintZeroTraction, LinearQuad) {
 
 	delete geo_map;
 }
-
-TEST_F(ZeroConstraintZeroTraction, LinearTri) {
-	mesh_builder->build2DRectTriMesh(mesh, 2, 1, 0, 0, 2, 1);
-	apf::changeMeshShape(mesh, apf::getLagrange(1));
-	/*physical parameters*/
-	double E, Nu;
-	E = YOUNGS_MODULUS;
-	Nu = POISSONS_RATIO;
-	uint32_t integration_order = 4;
-	bool reorder_flag = true;
-	/*currently unused*/
-	GeometryMappings* geo_map = new GeometryMappings();
-	struct ElasticAnalysisInput input = {
-			mesh,
-			geo_map,
-			integration_order,
-			E,
-			Nu,
-			reorder_flag};
-
-	ElasticAnalysis2D tmp(input);
-
-	EXPECT_EQ(0, tmp.setup());
-	EXPECT_EQ(0, tmp.solve());
-	EXPECT_EQ(0, tmp.recover());
-	/*now check the displacements*/
-	for(std::size_t ii = 0; ii < tmp.displacement.size(); ++ii) {
-		/*this is a resolution of displacements to the 0.005mm or 5 microns*/
-		EXPECT_FLOAT_EQ(0.0, tmp.displacement[ii]);
-	}
-
-	delete geo_map;
-}
-
-TEST_F(ZeroConstraintZeroTraction, QuadQuad) {
-	mesh_builder->build2DRectQuadMesh(mesh, 2, 1, 0.0, 0.0, 2.0, 2.0);
-	apf::changeMeshShape(mesh, apf::getLagrange(2));
-	/*physical parameters*/
-	double E, Nu;
-	E = YOUNGS_MODULUS;
-	Nu = POISSONS_RATIO;
-	uint32_t integration_order = 4;
-	bool reorder_flag = true;
-	/*currently unused*/
-	GeometryMappings* geo_map = new GeometryMappings();
-	struct ElasticAnalysisInput input = {
-			mesh,
-			geo_map,
-			integration_order,
-			E,
-			Nu,
-			reorder_flag};
-
-	ElasticAnalysis2D tmp(input);
-
-	EXPECT_EQ(0, tmp.setup());
-	EXPECT_EQ(0, tmp.solve());
-	EXPECT_EQ(0, tmp.recover());
-	/*now check the displacements*/
-	for(std::size_t ii = 0; ii < tmp.displacement.size(); ++ii) {
-		/*this is a resolution of displacements to the 0.005mm or 5 microns*/
-		EXPECT_FLOAT_EQ(0.0, tmp.displacement[ii]);
-	}
-
-	delete geo_map;
-}
-
-TEST_F(ZeroConstraintZeroTraction, SerendipityQuad) {
-	mesh_builder->build2DRectQuadMesh(mesh, 2, 1, 0.0, 0.0, 2.0, 2.0);
-	apf::changeMeshShape(mesh, apf::getSerendipity());
-	/*physical parameters*/
-	double E, Nu;
-	E = YOUNGS_MODULUS;
-	Nu = POISSONS_RATIO;
-	uint32_t integration_order = 4;
-	bool reorder_flag = true;
-	/*currently unused*/
-	GeometryMappings* geo_map = new GeometryMappings();
-	struct ElasticAnalysisInput input = {
-			mesh,
-			geo_map,
-			integration_order,
-			E,
-			Nu,
-			reorder_flag};
-
-	ElasticAnalysis2D tmp(input);
-
-	EXPECT_EQ(0, tmp.setup());
-	EXPECT_EQ(0, tmp.solve());
-	EXPECT_EQ(0, tmp.recover());
-	/*now check the displacements*/
-	for(std::size_t ii = 0; ii < tmp.displacement.size(); ++ii) {
-		/*this is a resolution of displacements to the 0.005mm or 5 microns*/
-		EXPECT_FLOAT_EQ(0.0, tmp.displacement[ii]);
-	}
-
-	delete geo_map;
-}
-
-TEST_F(ZeroConstraintZeroTraction, QuadTri) {
-	mesh_builder->build2DRectTriMesh(mesh, 2, 1, 0, 0, 2, 1);
-	apf::changeMeshShape(mesh, apf::getLagrange(2));
-	/*physical parameters*/
-	double E, Nu;
-	E = YOUNGS_MODULUS;
-	Nu = POISSONS_RATIO;
-	uint32_t integration_order = 4;
-	bool reorder_flag = true;
-	/*currently unused*/
-	GeometryMappings* geo_map = new GeometryMappings();
-	struct ElasticAnalysisInput input = {
-			mesh,
-			geo_map,
-			integration_order,
-			E,
-			Nu,
-			reorder_flag};
-
-	ElasticAnalysis2D tmp(input);
-	EXPECT_EQ(0, tmp.setup());
-	EXPECT_EQ(0, tmp.solve());
-	EXPECT_EQ(0, tmp.recover());
-	/*now check the displacements*/
-	for(std::size_t ii = 0; ii < tmp.displacement.size(); ++ii) {
-		EXPECT_FLOAT_EQ(0.0, tmp.displacement[ii]);
-	}
-	delete geo_map;
-}
-
-	// PetscViewerSetFormat(PETSC_VIEWER_STDOUT_WORLD, PETSC_VIEWER_ASCII_MATLAB);
-
-	// MatView(linsys.K, PETSC_VIEWER_STDOUT_WORLD);
-	// VecView(tmp.linsys->F, PETSC_VIEWER_STDOUT_WORLD);

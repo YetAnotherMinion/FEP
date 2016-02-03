@@ -44,6 +44,7 @@ apf::Matrix< 3,3 > buildD(double E, double Nu, bool use_plane_stress) {
 }
 
 ElasticAnalysis2D::ElasticAnalysis2D(struct ElasticAnalysisInput & in) :
+	strain_energy(0.0),
 	geometry_map(in.geo_map),
 	integration_order(in.integration_order),
 	m(in.m)
@@ -77,8 +78,6 @@ ElasticAnalysis2D::~ElasticAnalysis2D()
 	apf::destroyNumbering(this->nodeNums);
 	apf::destroyNumbering(this->faceNums);
 	apf::destroyField(this->disp_field);
-	apf::destroyField(this->strain_field);
-	apf::destroyField(this->stress_field);
 	delete this->linsys;
 }
 
@@ -364,47 +363,61 @@ uint32_t ElasticAnalysis2D::recover()
 		assert((uint32_t)tmp_sz == n_l_dofs);
 
 		/*squash global dofs into per element dofs*/
-		std::vector< apf::Vector<2> > local_displacements(n_elm_nodes);
+		std::vector< apf::Vector<2> > nodal_displacements(n_elm_nodes);
+		apf::DynamicVector elm_displacements(n_l_dofs);
+		/*copy the local tid*/
 		/*use the convention [x0, y0, x1, y1, x2, ...] for the order
 		* of the local dofs in the node_mapping vector*/
 		for(uint32_t ii = 0; ii < static_cast<uint32_t>(n_elm_nodes); ++ii) {
 			double tmp_components[NUM_COMPONENTS];
 			for(uint32_t jj = 0; jj < NUM_COMPONENTS; ++jj) {
-				tmp_components[jj] = node_mapping[ii * NUM_COMPONENTS + jj];
+				uint64_t local_element_index = ii * NUM_COMPONENTS + jj;
+				int global_dof = node_mapping[local_element_index];
+				/*copy over element displacements according to the local DOFs*/
+				elm_displacements[local_element_index] = this->displacement[global_dof];
+				/*and copy the same displacement into a apf::Vector for each
+				* node*/
+				tmp_components[jj] = this->displacement[global_dof];
 			}
-			local_displacements[ii] = apf::Vector<NUM_COMPONENTS>(tmp_components);
+			nodal_displacements[ii] = apf::Vector<NUM_COMPONENTS>(tmp_components);
 		}
+
 		RecoverAtIntegrationPoints<3, 2> recovery_helper(
 			this->field,
 			this->D,
-			local_displacements,
+			nodal_displacements,
 			this->integration_order);
 
 		StiffnessContributor2D elm_stiffness(this->field,
-												  this->D,
-												  this->integration_order);
+											 this->D,
+											 this->integration_order);
 		apf::MeshElement* me = apf::createMeshElement(this->m, e);
-		//recovery_helper.process(me);
+		recovery_helper.process(me);
 		elm_stiffness.process(me);
 		/*compute part of the strain energy Kd */
-		std::vector<double> tmp_rhs;
+		apf::DynamicVector tmp_rhs(n_l_dofs);
 		assert(n_l_dofs == elm_stiffness.getNumberOfDOFs());
-		apf::DynamicVector ke_row(n_l_dofs);
+		
 
 		for(uint32_t ii = 0; ii < n_l_dofs; ++ii) {
-
-			tmp_rhs[ii] = 0;
+			apf::DynamicVector ke_row;
+			elm_stiffness.ke.getRow(static_cast<std::size_t>(ii), ke_row);
+			tmp_rhs[ii] = ke_row * elm_displacements;
 		}
+		double element_energy = tmp_rhs * elm_displacements;
+		std::cout << "element energy = " << element_energy << std::endl;
+		this->strain_energy += element_energy;
 
 
-		for(auto pair : recovery_helper.stress) {
-			std::cout << "x = (" << pair.first << "):" << std::endl;
-			std::cout << "\te = (" << pair.second << ")" << std::endl;
+		for(auto pair : recovery_helper.strain) {
+			std::cout << "x = " << pair.first << ":" << std::endl;
+			std::cout << "\te = " << pair.second << std::endl << std::endl;
 		}
 		apf::destroyMeshElement(me);
 	}
 	this->m->end(it);
-
+	/*Compute*/
+	this->strain_energy *= 0.5;
 
 	std::cout << "==============Recovered=============" << std::endl;
 
