@@ -6,7 +6,8 @@ branches:
   - master
 
 compiler:
-  - clang
+# don't build with clang until we can get a c++11 version
+#  - clang
   - gcc
 
 cache:
