@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <utility>
+#include <stdexcept>
 #include <apf.h>
 #include <apfDynamicMatrix.h>
 #include <apfDynamicVector.h>

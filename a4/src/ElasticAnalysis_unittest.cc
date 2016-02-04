@@ -404,6 +404,9 @@ TEST_P(SampleProblems, ZeroConstraintZeroTraction) {
 	EXPECT_FLOAT_EQ(0.0, tmp.strain_energy);
 
 	delete geo_map;
+	/*the member mesh should be null, so then assign it so that
+	* it gets cleaned*/
+	this->mesh = mesh;
 }
 
 #define LINEAR_X_LOAD 1000.0
@@ -466,5 +469,64 @@ TEST_P(SampleProblems, LinearTraction) {
 		EXPECT_FLOAT_EQ(LINEAR_X_LOAD, pair.second[0]);
 	}
 
+	this->mesh = mesh;
 	delete geo_map;
+}
+
+TEST_P(SampleProblems, StrainEnergyVsH) {
+	MeshTypes index = GetParam();
+
+	for(uint32_t h = 1; h < 30; ++h) {
+		uint32_t X_ELMS = h+1;
+		uint32_t Y_ELMS = h;
+		apf::Mesh2* mesh = this->getMeshFromIndex(index, X_ELMS, Y_ELMS);
+		std::cout << "\t\t\t\t" << this->suffix << std::endl;
+		ASSERT_TRUE(mesh != NULL);
+		/*physical parameters*/
+		double E, Nu;
+		E = 8e8;
+		Nu = 0.35;
+		uint32_t integration_order = 4;
+		bool reorder_flag = true;
+
+		GeometryMappings* geo_map = new GeometryMappings();
+
+		void (*cnstr_ptr)(apf::MeshEntity*, apf::Mesh*, apf::Numbering*, std::vector<uint64_t> &, std::vector<double> &);
+		cnstr_ptr = &zeroDisplacementX_2D;
+		geo_map->addDircheletMapping(LEFT_EDGE, cnstr_ptr);
+		cnstr_ptr = &zeroDisplacementY_2D;
+		//geo_map->addDircheletMapping(LEFT_EDGE, cnstr_ptr);
+		//geo_map->addDircheletMapping(TOP_EDGE, cnstr_ptr);
+		geo_map->addDircheletMapping(BOT_EDGE, cnstr_ptr);
+
+		apf::Vector3 (*traction_ptr)(apf::Vector3 const &);
+		traction_ptr = &Gravity_Y;
+		geo_map->addNeumannMapping(ALL_FACES, traction_ptr);
+		// traction_ptr = &SampleLinearLoad_X;
+		// geo_map->addNeumannMapping(RIGHT_EDGE, traction_ptr);
+
+		struct ElasticAnalysisInput input = {
+				mesh,
+				geo_map,
+				integration_order,
+				E,
+				Nu,
+				reorder_flag};
+
+		ElasticAnalysis2D *tmp = new ElasticAnalysis2D(input);
+
+		EXPECT_EQ(0, tmp->setup());
+		EXPECT_EQ(0, tmp->solve());
+		EXPECT_EQ(0, tmp->recover());
+
+		std::cout << "h = " << h << std::endl;
+		std::cout << std::setprecision(20);
+		std::cout << tmp->strain_energy <<  std::setprecision(5) << std::endl;
+
+		delete tmp;
+		mesh->destroyNative();
+		apf::destroyMesh(mesh);
+		delete geo_map;
+	}
+	
 }
