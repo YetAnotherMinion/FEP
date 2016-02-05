@@ -88,8 +88,6 @@ We extend the apf::Integrator class to implement each stiffness contributor, as 
 \subsection{Zero Displacement Boundary Conditions, No Tractions}
 
 
-\subsection{Zero Displacement Boundary Conditions, Simple}
-
 \subsection{Some Boundary Constraints, Simple Linear Traction}
 
 \subsection{Some Boundary Constraints, Simple Body Force}
@@ -106,7 +104,7 @@ We extend the apf::Integrator class to implement each stiffness contributor, as 
 \begin{algorithmic}
 
 \Procedure{Foo}{bar}
-    \State
+    \State Foo
 \EndProcedure
 
 \end{algorithmic}
@@ -118,12 +116,13 @@ We extend the apf::Integrator class to implement each stiffness contributor, as 
 \Procedure{IntegrateStiffness}{element, weight, dV}
     \State n\_local\_dofs $\gets$ NDIM $*$ countElementNodes(element) \Comment{2} 
     \State K\_element $\gets$ Matrix< n\_local\_dofs, n\_local\_dofs >
-    \ForAll{integration_point \textbf{on} element}
-        \State gradShape $\gets$ getShapeGradient(integration_point)
+    \ForAll{integration\_point \textbf{on} element}
+        \State gradShape $\gets$ getShapeGradient(integration\_point)
         \Comment Construct
         \ForAll{node \textbf{in} element}
             \State B[node\_index] $\gets$ $ \left[  \right]$
-    
+        \EndFor
+    \EndFor
 \EndProcedure
 
 \end{algorithmic}
@@ -148,6 +147,7 @@ We extend the apf::Integrator class to implement each stiffness contributor, as 
 \lstinputlisting[caption = {Mesh Builder helper class}]{../inc/MeshBuilder.h}
 \lstinputlisting[caption = {Adjacency reordering routine}]{../inc/MeshAdjReorder.h}
 \lstinputlisting[caption = {Stiffness Constributor}]{../inc/StiffnessContributor2D.h}
+\lstinputlisting[caption = {Recover Secondary Variables}]{../inc/RecoverAtIntegrationPoints.h}
 
 
 %sources
@@ -172,6 +172,7 @@ We extend the apf::Integrator class to implement each stiffness contributor, as 
 %build files
 \lstinputlisting[caption = {configuration file}]{../config.mk}
 \lstinputlisting[caption = {Makefile}]{../Makefile}
+\lstinputlisting[caption = {Travis CI}] {../../.travis.yml}
 
 
 \end{document}
