@@ -108,12 +108,12 @@ TEST_F(ElasticAnalysisTest, AppRunTest) {
 	// VecView(tmp.linsys->d, PETSC_VIEWER_STDOUT_WORLD);
 
 	EXPECT_EQ(0, tmp.recover());
-	std::cout << "=========== Solution ============" << std::endl;
-	for(std::size_t ii = 0; ii < tmp.displacement.size(); ++ii) {
-		std::cout << "d_" << ii << " = " << (tmp.displacement[ii]) << std::endl;
-	}
+	// std::cout << "=========== Solution ============" << std::endl;
+	// for(std::size_t ii = 0; ii < tmp.displacement.size(); ++ii) {
+	// 	std::cout << "d_" << ii << " = " << (tmp.displacement[ii]) << std::endl;
+	// }
 	
-	apf::writeASCIIVtkFiles("solution_mesh", this->mesh);
+	// apf::writeASCIIVtkFiles("solution_mesh", this->mesh);
 	delete geo_map;
 }
 
@@ -176,63 +176,6 @@ TEST_F(ElasticAnalysisTest, SideConcaveTest) {
 	delete geo_map;
 }
 
-TEST_F(ElasticAnalysisTest, LinearGravityTest) {
-	mesh_builder->build2DRectQuadMesh(this->mesh, 20, 10, 0.0, 0.0, 2.0, 1.0);
-	// mesh_builder->build2DRectTriMesh(this->mesh, 4, 2, 0.0, 0.0, 2.0, 1.0);
-	EXPECT_TRUE(this->mesh != NULL);
-	//apf::changeMeshShape(mesh, apf::getSerendipity());
-	// apf::changeMeshShape(this->mesh, apf::getLagrange(1));
-	/*physical parameters*/
-	double E, Nu;
-	E = YOUNGS_MODULUS;
-	Nu = POISSONS_RATIO;
-	//Nu = 0.0;
-	uint32_t integration_order = 4;
-	bool reorder_flag = true;
-	/*Fix the bottom edge in the Y direction only, and the
-	* left side in the X direction only*/
-	GeometryMappings* geo_map = new GeometryMappings();
-	void (*cnstr_ptr)(apf::MeshEntity*, apf::Mesh*, apf::Numbering*, std::vector<uint64_t> &, std::vector<double> &);
-	cnstr_ptr = &zeroDisplacementX_2D;
-	geo_map->addDircheletMapping(LEFT_EDGE, cnstr_ptr);
-	cnstr_ptr = &zeroDisplacementY_2D;
-	geo_map->addDircheletMapping(BOT_EDGE, cnstr_ptr);
-
-	apf::Vector3 (*traction_ptr)(apf::Vector3 const &);
-	traction_ptr = &Gravity_Y;
-	geo_map->addNeumannMapping(ALL_FACES, traction_ptr);
-
-	struct ElasticAnalysisInput input = {
-			this->mesh,
-			geo_map,
-			integration_order,
-			E,
-			Nu,
-			reorder_flag};
-
-	ElasticAnalysis2D tmp(input);
-
-	PetscViewerSetFormat(PETSC_VIEWER_STDOUT_WORLD, PETSC_VIEWER_ASCII_MATLAB);
-
-	EXPECT_EQ(0, tmp.setup());
-
-	// MatView(tmp.linsys->K, PETSC_VIEWER_STDOUT_WORLD);
-
-	// VecView(tmp.linsys->F, PETSC_VIEWER_STDOUT_WORLD);
-
-
-	EXPECT_EQ(0, tmp.solve());
-	// VecView(tmp.linsys->d, PETSC_VIEWER_STDOUT_WORLD);
-	EXPECT_EQ(0, tmp.recover());
-
-	// std::cout << "=========== Solution ============" << std::endl;
-	// for(std::size_t ii = 0; ii < tmp.displacement.size(); ++ii) {
-	// 	std::cout << "d_" << ii << " = " << (tmp.displacement[ii]) << std::endl;
-	// }
-	
-	apf::writeASCIIVtkFiles("gravity", this->mesh);
-	delete geo_map;
-}
 
 TEST_F(ElasticAnalysisTest, PlaneStrainComputation) {
 	double E = YOUNGS_MODULUS;
@@ -360,12 +303,72 @@ INSTANTIATE_TEST_CASE_P(GeometryTags, SampleProblems,
 					  MeshTypes::LINEAR_TRI, MeshTypes::QUAD_TRI,
 					  MeshTypes::SERENDIPITY_QUAD));
 
+TEST_P(SampleProblems, Gravity) {
+	MeshTypes index = GetParam();
+	uint32_t X_ELMS = 80;
+	uint32_t Y_ELMS = 80;
+	this->mesh = this->getMeshFromIndex(index, X_ELMS, Y_ELMS);
+	/*physical parameters*/
+	double E, Nu;
+	E = YOUNGS_MODULUS;
+	Nu = POISSONS_RATIO;
+	//Nu = 0.0;
+	uint32_t integration_order = 4;
+	bool reorder_flag = true;
+	/*Fix the bottom edge in the Y direction only, and the
+	* left side in the X direction only*/
+	GeometryMappings* geo_map = new GeometryMappings();
+	void (*cnstr_ptr)(apf::MeshEntity*, apf::Mesh*, apf::Numbering*, std::vector<uint64_t> &, std::vector<double> &);
+	cnstr_ptr = &zeroDisplacementX_2D;
+	geo_map->addDircheletMapping(LEFT_EDGE, cnstr_ptr);
+	cnstr_ptr = &zeroDisplacementY_2D;
+	geo_map->addDircheletMapping(BOT_EDGE, cnstr_ptr);
+
+	apf::Vector3 (*traction_ptr)(apf::Vector3 const &);
+	traction_ptr = &Gravity_Y;
+	geo_map->addNeumannMapping(ALL_FACES, traction_ptr);
+
+	struct ElasticAnalysisInput input = {
+			this->mesh,
+			geo_map,
+			integration_order,
+			E,
+			Nu,
+			reorder_flag};
+
+	ElasticAnalysis2D tmp(input);
+
+	// PetscViewerSetFormat(PETSC_VIEWER_STDOUT_WORLD, PETSC_VIEWER_ASCII_MATLAB);
+
+	EXPECT_EQ(0, tmp.setup());
+
+	// MatView(tmp.linsys->K, PETSC_VIEWER_STDOUT_WORLD);
+
+	// VecView(tmp.linsys->F, PETSC_VIEWER_STDOUT_WORLD);
+
+
+	EXPECT_EQ(0, tmp.solve());
+	// VecView(tmp.linsys->d, PETSC_VIEWER_STDOUT_WORLD);
+	EXPECT_EQ(0, tmp.recover());
+	std::cout << "************************************" << std::endl;
+	std::cout << "*\t" << this->suffix << std::endl;
+	std::cout << "************************************" << std::endl;
+	std::cout << "strain energy: " << std::setprecision(20) << tmp.strain_energy;
+	std::cout << std::endl;
+	std::string out_name = "gravity";
+	out_name += this->suffix;
+	
+	// apf::writeASCIIVtkFiles(out_name.c_str(), this->mesh);
+	apf::writeVtkFiles(out_name.c_str(), this->mesh);
+	delete geo_map;
+}
+
 TEST_P(SampleProblems, ZeroConstraintZeroTraction) {
 	MeshTypes index = GetParam();
 	uint32_t X_ELMS = 4;
 	uint32_t Y_ELMS = 3;
-	apf::Mesh2* mesh = this->getMeshFromIndex(index, X_ELMS, Y_ELMS);
-	ASSERT_TRUE(mesh != NULL);
+	this->mesh = this->getMeshFromIndex(index, X_ELMS, Y_ELMS);
+	ASSERT_TRUE(this->mesh != NULL);
 	/*physical parameters*/
 	double E, Nu;
 	E = YOUNGS_MODULUS;
@@ -375,7 +378,7 @@ TEST_P(SampleProblems, ZeroConstraintZeroTraction) {
 	/*currently unused*/
 	GeometryMappings* geo_map = new GeometryMappings();
 	struct ElasticAnalysisInput input = {
-			mesh,
+			this->mesh,
 			geo_map,
 			integration_order,
 			E,
@@ -403,10 +406,17 @@ TEST_P(SampleProblems, ZeroConstraintZeroTraction) {
 	};
 	EXPECT_FLOAT_EQ(0.0, tmp.strain_energy);
 
+	std::cout << "************************************" << std::endl;
+	std::cout << "*\t" << this->suffix << std::endl;
+	std::cout << "************************************" << std::endl;
+	std::cout << "strain energy: " << std::setprecision(20) << tmp.strain_energy;
+	std::cout << std::endl;
+	std::string out_name = "zero_zero";
+	out_name += this->suffix;
+	
+	apf::writeASCIIVtkFiles(out_name.c_str(), this->mesh);
+	// apf::writeVtkFiles(out_name.c_str(), this->mesh);
 	delete geo_map;
-	/*the member mesh should be null, so then assign it so that
-	* it gets cleaned*/
-	this->mesh = mesh;
 }
 
 #define LINEAR_X_LOAD 1000.0
@@ -416,12 +426,18 @@ apf::Vector3 SampleLinearLoad_X(apf::Vector3 const & p)
 	return apf::Vector3(LINEAR_X_LOAD, 0, 0);
 }
 
+apf::Vector3 SampleLinearBodyForce_Y(apf::Vector3 const & p)
+{
+	double y_component = 500.0 + p[0] * 50;
+	return apf::Vector3(0, -y_component, 0);
+}
+
 TEST_P(SampleProblems, LinearTraction) {
 	MeshTypes index = GetParam();
 	uint32_t X_ELMS = 2;
 	uint32_t Y_ELMS = 1;
-	apf::Mesh2* mesh = this->getMeshFromIndex(index, X_ELMS, Y_ELMS);
-	ASSERT_TRUE(mesh != NULL);
+	this->mesh = this->getMeshFromIndex(index, X_ELMS, Y_ELMS);
+	ASSERT_TRUE(this->mesh != NULL);
 	/*physical parameters*/
 	double E, Nu;
 	E = 8e8;
@@ -444,7 +460,7 @@ TEST_P(SampleProblems, LinearTraction) {
 	geo_map->addNeumannMapping(RIGHT_EDGE, traction_ptr);
 
 	struct ElasticAnalysisInput input = {
-			mesh,
+			this->mesh,
 			geo_map,
 			integration_order,
 			E,
@@ -469,16 +485,27 @@ TEST_P(SampleProblems, LinearTraction) {
 		EXPECT_FLOAT_EQ(LINEAR_X_LOAD, pair.second[0]);
 	}
 
-	this->mesh = mesh;
+	// std::cout << "************************************" << std::endl;
+	// std::cout << "*\t\t" << this->suffix << std::endl;
+	// std::cout << "************************************" << std::endl;
+	// std::cout << "strain energy: " << std::setprecision(20) << tmp.strain_energy;
+	// std::cout << std::endl;
+	// std::string bar = "linear_load";
+	// bar += this->suffix;
+
 	delete geo_map;
 }
+#define UPPER_H_LIMIT 12
 
-TEST_P(SampleProblems, StrainEnergyVsH) {
+TEST_P(SampleProblems, StrainEnergyConstantBodyForce) {
 	MeshTypes index = GetParam();
 
-	for(uint32_t h = 1; h < 30; ++h) {
-		uint32_t X_ELMS = h+1;
-		uint32_t Y_ELMS = h;
+	double energies[UPPER_H_LIMIT];
+	int problem_dofs[UPPER_H_LIMIT];
+
+	for(uint32_t h = 1; h < UPPER_H_LIMIT; ++h) {
+		uint32_t X_ELMS = h;
+		uint32_t Y_ELMS = h+1;
 		apf::Mesh2* mesh = this->getMeshFromIndex(index, X_ELMS, Y_ELMS);
 		std::cout << "\t\t\t\t" << this->suffix << std::endl;
 		ASSERT_TRUE(mesh != NULL);
@@ -519,14 +546,95 @@ TEST_P(SampleProblems, StrainEnergyVsH) {
 		EXPECT_EQ(0, tmp->solve());
 		EXPECT_EQ(0, tmp->recover());
 
-		std::cout << "h = " << h << std::endl;
-		std::cout << std::setprecision(20);
-		std::cout << tmp->strain_energy <<  std::setprecision(5) << std::endl;
+		problem_dofs[h] = tmp->linsys->freeDOFs;
+		energies[h] = tmp->strain_energy;
+		/*preserve a record of some of these meshes*/
+		if( 10 == h ) {
+			std::string out_name("constant_body_force_2x2");
+			out_name += this->suffix;
+			apf::writeASCIIVtkFiles(out_name.c_str(), mesh);
+		}
 
 		delete tmp;
 		mesh->destroyNative();
 		apf::destroyMesh(mesh);
 		delete geo_map;
 	}
-	
+	std::cout << "constant_body_force_2x2" << this->suffix << " = [" << std::endl; 
+	for(auto ii = 1; ii < UPPER_H_LIMIT; ++ii) {
+		std::cout << ii << ", " << problem_dofs[ii] << ", ";
+		std::cout << std::setprecision(20);
+		std::cout << energies[ii] <<  std::setprecision(5) << std::endl;
+	}
+	std::cout << "];" << std::endl;
+}
+
+TEST_P(SampleProblems, StrainEnergyLinearBodyForce) {
+	MeshTypes index = GetParam();
+
+	double energies[UPPER_H_LIMIT];
+	int problem_dofs[UPPER_H_LIMIT];
+
+	for(uint32_t h = 1; h < UPPER_H_LIMIT; ++h) {
+		uint32_t X_ELMS = h;
+		uint32_t Y_ELMS = h+1;
+		apf::Mesh2* mesh = this->getMeshFromIndex(index, X_ELMS, Y_ELMS);
+		std::cout << "\t\t\t\t" << this->suffix << std::endl;
+		ASSERT_TRUE(mesh != NULL);
+		/*physical parameters*/
+		double E, Nu;
+		E = 8e8;
+		Nu = 0.35;
+		uint32_t integration_order = 4;
+		bool reorder_flag = true;
+
+		GeometryMappings* geo_map = new GeometryMappings();
+
+		void (*cnstr_ptr)(apf::MeshEntity*, apf::Mesh*, apf::Numbering*, std::vector<uint64_t> &, std::vector<double> &);
+		cnstr_ptr = &zeroDisplacementX_2D;
+		geo_map->addDircheletMapping(LEFT_EDGE, cnstr_ptr);
+		cnstr_ptr = &zeroDisplacementY_2D;
+		geo_map->addDircheletMapping(BOT_EDGE, cnstr_ptr);
+
+		apf::Vector3 (*traction_ptr)(apf::Vector3 const &);
+		traction_ptr = &SampleLinearBodyForce_Y;
+		geo_map->addNeumannMapping(ALL_FACES, traction_ptr);
+
+		struct ElasticAnalysisInput input = {
+				mesh,
+				geo_map,
+				integration_order,
+				E,
+				Nu,
+				reorder_flag};
+
+		ElasticAnalysis2D *tmp = new ElasticAnalysis2D(input);
+
+		EXPECT_EQ(0, tmp->setup());
+		EXPECT_EQ(0, tmp->solve());
+		EXPECT_EQ(0, tmp->recover());
+
+		problem_dofs[h] = tmp->linsys->freeDOFs;
+		energies[h] = tmp->strain_energy;
+		/*preserve a record of some of these meshes*/
+		if( 10 == h ) {
+			std::string out_name("linear_body_force_2x2");
+			out_name += this->suffix;
+			apf::writeASCIIVtkFiles(out_name.c_str(), mesh);
+		}
+
+
+		delete tmp;
+		mesh->destroyNative();
+		apf::destroyMesh(mesh);
+		delete geo_map;
+	}
+
+	std::cout << "linear_body_force" << this->suffix << " = [" << std::endl; 
+	for(auto ii = 1; ii < UPPER_H_LIMIT; ++ii) {
+		std::cout << ii << ", " << problem_dofs[ii] << ", ";
+		std::cout << std::setprecision(20);
+		std::cout << energies[ii] <<  std::setprecision(5) << std::endl;
+	}
+	std::cout << "];" << std::endl;
 }

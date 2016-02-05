@@ -153,6 +153,7 @@ void AlgebraicSystem::beginAssembly() {
 	/*now compute the remaining degrees of freedom*/
 	std::size_t ndogs = this->known_d.size();
 	std::size_t n_eq = this->nGlobalDOFs - ndogs;
+	this->freeDOFs = n_eq;
 	/*initialize the flag of */
 	this->_row_has_been_initialized.clear();
 	this->_row_has_been_initialized.resize(n_eq, false);

@@ -43,6 +43,7 @@ public:
 	Mat K;
 	Vec F;
 	Vec d;
+	uint64_t freeDOFs;
 private:
 	bool _allow_assembly;
 	bool _allow_displacement_extraction;

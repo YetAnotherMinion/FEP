@@ -78,6 +78,7 @@ ElasticAnalysis2D::~ElasticAnalysis2D()
 	apf::destroyNumbering(this->nodeNums);
 	apf::destroyNumbering(this->faceNums);
 	apf::destroyField(this->disp_field);
+	apf::destroyField(this->field);
 	delete this->linsys;
 }
 
@@ -344,9 +345,9 @@ uint32_t ElasticAnalysis2D::recover()
 			this->m->end(it);
 		}
 	}
-	/*to find the strain energy we compute first rhs = Ku, then
+	/* To find the strain energy we compute first rhs = Ku, then
 	* multiply by transpose(u) * rhs which is just the dot product.
-	* Then we multiply by 1/2. First we will compute the*/
+	* Then we multiply by 1/2.*/
 
 
 	/*Stiffness contributors for 2D mesh are only the faces*/
@@ -363,7 +364,7 @@ uint32_t ElasticAnalysis2D::recover()
 		assert((uint32_t)tmp_sz == n_l_dofs);
 
 		/*squash global dofs into per element dofs*/
-		std::vector< apf::Vector<2> > nodal_displacements(n_elm_nodes);
+		std::vector< apf::Vector<NUM_COMPONENTS> > nodal_displacements(n_elm_nodes);
 		apf::DynamicVector elm_displacements(n_l_dofs);
 		/*copy the local tid*/
 		/*use the convention [x0, y0, x1, y1, x2, ...] for the order
@@ -382,7 +383,7 @@ uint32_t ElasticAnalysis2D::recover()
 			nodal_displacements[ii] = apf::Vector<NUM_COMPONENTS>(tmp_components);
 		}
 
-		RecoverAtIntegrationPoints<3, 2> recovery_helper(
+		RecoverAtIntegrationPoints<3, NUM_COMPONENTS> recovery_helper(
 			this->field,
 			this->D,
 			nodal_displacements,
