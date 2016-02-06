@@ -82,9 +82,14 @@ mesh elements. Assembly is simplified by the fact we are using isoparametric ele
 We extend the apf::Integrator class to implement each stiffness contributor, as well as the discretization of each traction.
 
 
+The KSP solver from PetSc was chosen because it had better documentation and examples on its use. The linear system uses PetSc matrices and vectors, allowing for easy choice of a different solver in the future.
+
+
 \section{Tests}
 
 \subsection{No Boundary Constraints, No Tractions}
+
+With zero constraints and zero tractions, the zero vector is the trivial solution to the linear system. A robust code will properly handle this condition. While other test descriptions 
 
 
 \subsection{Zero Displacement Boundary Conditions, No Tractions}
@@ -141,17 +146,34 @@ We extend the apf::Integrator class to implement each stiffness contributor, as 
 
 \begin{figure}
     \makebox[\textwidth][c]{\adjustbox{trim= {0} {0.2\height} {0} {0.15\height}, clip}{\includegraphics[width = 0.8\textwidth ]{smaller_h_constant_force}}};
-    \caption{Convergence of different mesh elements for same boundary value problem with a constant body force as seen in the }
+    \caption{Convergence of meshes of same geometrical problem with different types of mesh elements. $E = 8*10^8$ and $\nu = 0.35$}
 \centering
 \end{figure}
 
-This error with the strain energy is
+This error with the strain energy does not appear to come from rounding errors in the implementation. 
 
 \begin{figure}
     \makebox[\textwidth][c]{\adjustbox{trim= {0} {0.2\height} {0} {0.15\height}, clip}{\includegraphics[width = 0.8\textwidth ]{smaller_h_constant_force_20x20}}};
     \caption{Convergence of different mesh elements for same boundary value problem with a constant body force as seen in the }
 \centering
 \end{figure}
+
+
+\begin{figure}
+    \makebox[\textwidth][c]{\adjustbox{trim= {0} {0.2\height} {0} {0.15\height}, clip}{\includegraphics[width = 0.8\textwidth ]{difference_between_10_80_linear_tri_gravity}}};
+    \caption{Difference in deformation solution between a 10x10 mesh and a 80x80 mesh for linear triangle elements.}
+\centering
+\end{figure}
+
+We check to see if this could be an issue with the chosen solver finding a close enough solution to the systems of equations. We are using an inexact solver, so this scenario is plausible. Plotting the strain energy against the degrees of freedom will reveal any dependence on solver inaccuracies.
+
+\begin{figure}
+    \makebox[\textwidth][c]{\adjustbox{trim= {0} {0.2\height} {0} {0.15\height}, clip}{\includegraphics[width = 0.8\textwidth ]{error_vs_dofs}}};
+    \caption{Strain energy plotted vs }
+\centering
+\end{figure}
+
+
 
 \FloatBarrier
 \section{Pseudo code}
@@ -198,7 +220,7 @@ Not completed
 
 \lstset{linewidth = 16cm, xrightmargin = 0cm}
 \lstlistoflistings
-\lstinputlisting[caption = {Test Driver}]{../src/a4.cc}
+\lstinputlisting[caption = {Test Driver}]{../src/mpi_and_petsc_gtest_main.cc}
 %includes
 \lstinputlisting[caption = {Algebraic System container class}]{../inc/AlgebraicSystem.h}
 \lstinputlisting[caption = {Elastic Analysis Class}]{../inc/ElasticAnalysis2D.h}
@@ -224,6 +246,8 @@ Not completed
 
 %Mesh builder unittests are all empty right now and probably wont meaningfully change
 %\lstinputlisting[caption = {Mesh builder unittests}]{../src/MeshBuilder_unittest.cc}
+\lstinputlisting[caption = {Measures convergence of mesh elements}]{../src/Convergence_test.cc}
+\lstinputlisting[caption = {Abstract common testing setup code}]{../inc/TestingUtilityFunctions.h}
 \lstinputlisting[caption = {Algebraic System tests}]{../src/AlgebraicSystem_unittest.cc}
 \lstinputlisting[caption = {Test node mapping functions}]{../src/ShapeFunctionOrdering_unittest.cc}
 \lstinputlisting[caption = {Test mesh generation scripts}]{../src/SimpleRectMesh_unittest.cc}

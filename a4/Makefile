@@ -48,7 +48,7 @@ MPIFLAGS += -Wall -g -I $(IDIR) --pedantic-errors
 
 # All tests produced by this Makefile.  Remember to add new tests you
 # created to the list.
-TESTS = $(BDIR)/a4
+TESTS = $(BDIR)/app_test $(BDIR)/convergence_test
 
 # All Google Test headers.  Usually you shouldn't change this
 # definition.
@@ -155,12 +155,16 @@ $(ODIR)/StiffnessContributor2D_unittest.o : $(SDIR)/StiffnessContributor2D_unitt
 							$(GTEST_HEADERS)
 	mpicxx $(CPPFLAGS) $(MPIFLAGS) $(PETSC_INC) $(PUMI_INC) -c $< -o $@
 
+$(ODIR)/Convergence_test.o : 	$(SDIR)/Convergence_test.cc \
+								$(GTEST_HEADERS)
+	mpicxx $(CPPFLAGS) $(MPIFLAGS) $(PUMI_INC) $(PETSC_INC) -c $< -o $@
+
 #pumi library is no longer rebuilt every time
-$(ODIR)/a4.o : $(SDIR)/a4.cc $(GTEST_HEADERS)
+$(ODIR)/mpi_and_petsc_gtest_main.o : $(SDIR)/mpi_and_petsc_gtest_main.cc $(GTEST_HEADERS)
 	mpicxx $(CPPFLAGS) $(MPIFLAGS) $(PETSC_INC) $(PUMI_INC) -c $< -o $@
 
 
-$(BDIR)/a4 : 	$(ODIR)/a4.o $(ODIR)/MeshBuilder.o $(ODIR)/MeshBuilder_unittest.o \
+$(BDIR)/app_test : 	$(ODIR)/mpi_and_petsc_gtest_main.o $(ODIR)/MeshBuilder.o $(ODIR)/MeshBuilder_unittest.o \
 				$(ODIR)/SimpleRectMesh_unittest.o \
 				$(ODIR)/MeshAdjReorder.o \
 				$(ODIR)/ElasticAnalysis_unittest.o \
@@ -175,6 +179,19 @@ $(BDIR)/a4 : 	$(ODIR)/a4.o $(ODIR)/MeshBuilder.o $(ODIR)/MeshBuilder_unittest.o 
 				$(ODIR)/StiffnessContributor2D_unittest.o \
 				$(LDIR)/gtest.a
 	mpicxx $(CPPFLAGS) $(CXXFLAGS) $(PETSC_LIB) $(PUMI_LIBS) $^ -lpetsc -lmds -lapf -lgmi -lpcu -llion -lmth -lpthread  -o $@
+
+
+$(BDIR)/convergence_test : 	$(ODIR)/mpi_and_petsc_gtest_main.o \
+							$(ODIR)/Convergence_test.o \
+							$(ODIR)/MeshBuilder.o \
+							$(ODIR)/MeshAdjReorder.o \
+							$(ODIR)/ElasticAnalysis2D.o \
+							$(ODIR)/StiffnessContributor2D.o \
+							$(ODIR)/ForceContributor2D.o \
+							$(ODIR)/AlgebraicSystem.o \
+							$(ODIR)/GeometryMappings.o \
+							$(LDIR)/gtest.a
+	mpicxx $(CPPFLAGS) $(CXXFLAGS) $(PETSC_LIB) $(PUMI_LIBS) $^ -lpetsc -lmds -lapf -lgmi -lpcu -llion -lmth -lpthread -o $@
 
 #===============================================
 

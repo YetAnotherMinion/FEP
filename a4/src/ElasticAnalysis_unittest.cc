@@ -18,6 +18,8 @@
 #include "GeometryMappings.h"
 #include "AlgebraicSystem.h" /*provides SOLVER_ABSOLUTE_TOLERANCE constant*/
 
+#include "TestingUtilityFunctions.h"
+
 #define YOUNGS_MODULUS  1e8
 #define POISSONS_RATIO 0.35
 
@@ -41,20 +43,7 @@ protected:
 	}
 };
 
-apf::Vector3 LinearLoad_X(apf::Vector3 const & p)
-{
-	return apf::Vector3(1000.0, 0, 0);
-}
 
-apf::Vector3 LinearLoad_Y(apf::Vector3 const & p) 
-{
-	return apf::Vector3(0, -1000.0, 0);
-}
-
-apf::Vector3 Gravity_Y(apf::Vector3 const & p) 
-{
-	return apf::Vector3(0, -1000.0, 0);
-}
 
 
 TEST_F(ElasticAnalysisTest, AppRunTest) {
@@ -234,57 +223,14 @@ TEST_F(ElasticAnalysisTest, PlaneStressComputation) {
 	EXPECT_FLOAT_EQ(result_D[0][0], result_D[1][1]);
 }
 
-enum class MeshTypes { LINEAR_QUAD, QUAD_QUAD, LINEAR_TRI, QUAD_TRI, SERENDIPITY_QUAD };
-
 class SampleProblems : public ::testing::Test,
 	public ::testing::WithParamInterface<MeshTypes> 
 {
 protected:
 	apf::Mesh2* mesh;
-	MeshBuilder* mesh_builder;
 	std::string suffix;
 
-	apf::Mesh2* getMeshFromIndex(MeshTypes index, int X_ELMS, int Y_ELMS) {
-		apf::Mesh2* tmp = NULL;
-		switch(index) {
-			case MeshTypes::LINEAR_QUAD:
-				this->mesh_builder->build2DRectQuadMesh(tmp, X_ELMS, Y_ELMS,
-					0.0, 0.0, 2.0, 2.0);
-				this->suffix = "_linear_quad";
-				break;
-			case MeshTypes::QUAD_QUAD:
-				this->mesh_builder->build2DRectQuadMesh(tmp, X_ELMS, Y_ELMS,
-					0.0, 0.0, 2.0, 2.0);
-				apf::changeMeshShape(tmp, apf::getLagrange(2));
-				this->suffix = "_quadratic_quad";
-				break;
-			case MeshTypes::LINEAR_TRI:
-				this->mesh_builder->build2DRectTriMesh(tmp, X_ELMS, Y_ELMS,
-					0.0, 0.0, 2.0, 2.0);
-				this->suffix = "_linear_tri";
-				break;
-			case MeshTypes::QUAD_TRI:
-				this->mesh_builder->build2DRectTriMesh(tmp, X_ELMS, Y_ELMS,
-					0.0, 0.0, 2.0, 2.0);
-				apf::changeMeshShape(tmp, apf::getLagrange(2));
-				this->suffix = "_quadratic_tri";
-				break;
-			case MeshTypes::SERENDIPITY_QUAD:
-				this->mesh_builder->build2DRectQuadMesh(tmp, X_ELMS, Y_ELMS,
-					0.0, 0.0, 2.0, 2.0);
-				apf::changeMeshShape(tmp, apf::getSerendipity());
-				this->suffix = "_quadratic_serendipity";
-				break;
-			default:
-				/*mesh should stay null*/
-				break;
-		}
-		return tmp;
-	} 
-
 	virtual void SetUp() {
-		/*use mesh builder to abstract mesh creations*/
-		mesh_builder = new MeshBuilder();
 		mesh = NULL;
 		suffix = "";
 	}
@@ -294,7 +240,6 @@ protected:
 			mesh->destroyNative();
 			apf::destroyMesh(mesh);
 		}	
-		delete mesh_builder;
 	}
 };
 
@@ -307,7 +252,8 @@ TEST_P(SampleProblems, Gravity) {
 	MeshTypes index = GetParam();
 	uint32_t X_ELMS = 80;
 	uint32_t Y_ELMS = 80;
-	this->mesh = this->getMeshFromIndex(index, X_ELMS, Y_ELMS);
+	ASSERT_TRUE(NULL == this->mesh);
+	this->mesh = getMeshFromIndex(index, X_ELMS, Y_ELMS, this->suffix);
 	/*physical parameters*/
 	double E, Nu;
 	E = YOUNGS_MODULUS;
@@ -367,7 +313,7 @@ TEST_P(SampleProblems, ZeroConstraintZeroTraction) {
 	MeshTypes index = GetParam();
 	uint32_t X_ELMS = 4;
 	uint32_t Y_ELMS = 3;
-	this->mesh = this->getMeshFromIndex(index, X_ELMS, Y_ELMS);
+	this->mesh = getMeshFromIndex(index, X_ELMS, Y_ELMS, this->suffix);
 	ASSERT_TRUE(this->mesh != NULL);
 	/*physical parameters*/
 	double E, Nu;
@@ -426,17 +372,11 @@ apf::Vector3 SampleLinearLoad_X(apf::Vector3 const & p)
 	return apf::Vector3(LINEAR_X_LOAD, 0, 0);
 }
 
-apf::Vector3 SampleLinearBodyForce_Y(apf::Vector3 const & p)
-{
-	double y_component = 500.0 + p[0] * 50;
-	return apf::Vector3(0, -y_component, 0);
-}
-
 TEST_P(SampleProblems, LinearTraction) {
 	MeshTypes index = GetParam();
 	uint32_t X_ELMS = 2;
 	uint32_t Y_ELMS = 1;
-	this->mesh = this->getMeshFromIndex(index, X_ELMS, Y_ELMS);
+	this->mesh = getMeshFromIndex(index, X_ELMS, Y_ELMS, this->suffix);
 	ASSERT_TRUE(this->mesh != NULL);
 	/*physical parameters*/
 	double E, Nu;
@@ -494,147 +434,4 @@ TEST_P(SampleProblems, LinearTraction) {
 	// bar += this->suffix;
 
 	delete geo_map;
-}
-#define UPPER_H_LIMIT 12
-
-TEST_P(SampleProblems, StrainEnergyConstantBodyForce) {
-	MeshTypes index = GetParam();
-
-	double energies[UPPER_H_LIMIT];
-	int problem_dofs[UPPER_H_LIMIT];
-
-	for(uint32_t h = 1; h < UPPER_H_LIMIT; ++h) {
-		uint32_t X_ELMS = h;
-		uint32_t Y_ELMS = h+1;
-		apf::Mesh2* mesh = this->getMeshFromIndex(index, X_ELMS, Y_ELMS);
-		std::cout << "\t\t\t\t" << this->suffix << std::endl;
-		ASSERT_TRUE(mesh != NULL);
-		/*physical parameters*/
-		double E, Nu;
-		E = 8e8;
-		Nu = 0.35;
-		uint32_t integration_order = 4;
-		bool reorder_flag = true;
-
-		GeometryMappings* geo_map = new GeometryMappings();
-
-		void (*cnstr_ptr)(apf::MeshEntity*, apf::Mesh*, apf::Numbering*, std::vector<uint64_t> &, std::vector<double> &);
-		cnstr_ptr = &zeroDisplacementX_2D;
-		geo_map->addDircheletMapping(LEFT_EDGE, cnstr_ptr);
-		cnstr_ptr = &zeroDisplacementY_2D;
-		//geo_map->addDircheletMapping(LEFT_EDGE, cnstr_ptr);
-		//geo_map->addDircheletMapping(TOP_EDGE, cnstr_ptr);
-		geo_map->addDircheletMapping(BOT_EDGE, cnstr_ptr);
-
-		apf::Vector3 (*traction_ptr)(apf::Vector3 const &);
-		traction_ptr = &Gravity_Y;
-		geo_map->addNeumannMapping(ALL_FACES, traction_ptr);
-		// traction_ptr = &SampleLinearLoad_X;
-		// geo_map->addNeumannMapping(RIGHT_EDGE, traction_ptr);
-
-		struct ElasticAnalysisInput input = {
-				mesh,
-				geo_map,
-				integration_order,
-				E,
-				Nu,
-				reorder_flag};
-
-		ElasticAnalysis2D *tmp = new ElasticAnalysis2D(input);
-
-		EXPECT_EQ(0, tmp->setup());
-		EXPECT_EQ(0, tmp->solve());
-		EXPECT_EQ(0, tmp->recover());
-
-		problem_dofs[h] = tmp->linsys->freeDOFs;
-		energies[h] = tmp->strain_energy;
-		/*preserve a record of some of these meshes*/
-		if( 10 == h ) {
-			std::string out_name("constant_body_force_2x2");
-			out_name += this->suffix;
-			apf::writeASCIIVtkFiles(out_name.c_str(), mesh);
-		}
-
-		delete tmp;
-		mesh->destroyNative();
-		apf::destroyMesh(mesh);
-		delete geo_map;
-	}
-	std::cout << "constant_body_force_2x2" << this->suffix << " = [" << std::endl; 
-	for(auto ii = 1; ii < UPPER_H_LIMIT; ++ii) {
-		std::cout << ii << ", " << problem_dofs[ii] << ", ";
-		std::cout << std::setprecision(20);
-		std::cout << energies[ii] <<  std::setprecision(5) << std::endl;
-	}
-	std::cout << "];" << std::endl;
-}
-
-TEST_P(SampleProblems, StrainEnergyLinearBodyForce) {
-	MeshTypes index = GetParam();
-
-	double energies[UPPER_H_LIMIT];
-	int problem_dofs[UPPER_H_LIMIT];
-
-	for(uint32_t h = 1; h < UPPER_H_LIMIT; ++h) {
-		uint32_t X_ELMS = h;
-		uint32_t Y_ELMS = h+1;
-		apf::Mesh2* mesh = this->getMeshFromIndex(index, X_ELMS, Y_ELMS);
-		std::cout << "\t\t\t\t" << this->suffix << std::endl;
-		ASSERT_TRUE(mesh != NULL);
-		/*physical parameters*/
-		double E, Nu;
-		E = 8e8;
-		Nu = 0.35;
-		uint32_t integration_order = 4;
-		bool reorder_flag = true;
-
-		GeometryMappings* geo_map = new GeometryMappings();
-
-		void (*cnstr_ptr)(apf::MeshEntity*, apf::Mesh*, apf::Numbering*, std::vector<uint64_t> &, std::vector<double> &);
-		cnstr_ptr = &zeroDisplacementX_2D;
-		geo_map->addDircheletMapping(LEFT_EDGE, cnstr_ptr);
-		cnstr_ptr = &zeroDisplacementY_2D;
-		geo_map->addDircheletMapping(BOT_EDGE, cnstr_ptr);
-
-		apf::Vector3 (*traction_ptr)(apf::Vector3 const &);
-		traction_ptr = &SampleLinearBodyForce_Y;
-		geo_map->addNeumannMapping(ALL_FACES, traction_ptr);
-
-		struct ElasticAnalysisInput input = {
-				mesh,
-				geo_map,
-				integration_order,
-				E,
-				Nu,
-				reorder_flag};
-
-		ElasticAnalysis2D *tmp = new ElasticAnalysis2D(input);
-
-		EXPECT_EQ(0, tmp->setup());
-		EXPECT_EQ(0, tmp->solve());
-		EXPECT_EQ(0, tmp->recover());
-
-		problem_dofs[h] = tmp->linsys->freeDOFs;
-		energies[h] = tmp->strain_energy;
-		/*preserve a record of some of these meshes*/
-		if( 10 == h ) {
-			std::string out_name("linear_body_force_2x2");
-			out_name += this->suffix;
-			apf::writeASCIIVtkFiles(out_name.c_str(), mesh);
-		}
-
-
-		delete tmp;
-		mesh->destroyNative();
-		apf::destroyMesh(mesh);
-		delete geo_map;
-	}
-
-	std::cout << "linear_body_force" << this->suffix << " = [" << std::endl; 
-	for(auto ii = 1; ii < UPPER_H_LIMIT; ++ii) {
-		std::cout << ii << ", " << problem_dofs[ii] << ", ";
-		std::cout << std::setprecision(20);
-		std::cout << energies[ii] <<  std::setprecision(5) << std::endl;
-	}
-	std::cout << "];" << std::endl;
 }
