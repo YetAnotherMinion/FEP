@@ -81,21 +81,44 @@ We extend the apf::Integrator class to implement each stiffness contributor, as 
 The PUMI library data structures are used to compute the local contributions, and then values are copied into PETSc structures. There is some effort to optimize these copying operations to occur in bulk for cache efficiencies and in batches of continuous memory locations to minimize cache evictions. These copying routines are implemented in the extraction of the solution displacement vector.
 
 
-The KSP solver from PETSc was chosen because it had better documentation and examples on its use. The linear system uses PETSc matrices and vectors, allowing for easy choice of a different solver in the future. Default values for the solver were used originally because the example code did not significantly indicate configuration was possible. However changing the parameters of the solver used, or even changing the algorithm completely can be accomplished from a single location in the program in a completely transparent manner to the finite elements code.
+The KSP solver from PETSc was chosen because it had better documentation and examples on its use. The linear system uses PETSc matrices and vectors, allowing for easy choice of a different solver in the future. Default values for the solver were used originally because the example code did not significantly indicate configuration was possible. PETSc architecture allows for changing the parameters of the solver used, or even changing the algorithm completely can be accomplished from a single location in the program in a completely transparent manner to the finite elements code.
 
 \section{Tests}
+\subsection{Convergence of Element Types}
+\FloatBarrier
+We test the convergence of the all of the elements using the same boundary value problem so that direct comparison of convergence is meaningful. The boundary value problem is shown in the figure below. The displacement solution will be cubic, which cannot be exactly represented by our first and second order elements. 
 
+
+\begin{figure}
+    \makebox[\textwidth][c]{\adjustbox{trim= {0.0\width} {0.0\height} {0} {0.0\height}, clip}{\includegraphics[height = 8cm ]{quadratic_traction}}};
+    \caption{Rectangular domain with $a=2$ and $b=2$ units. The left edge has a zero displacement in the x direction boundary condition and a zero displacement in the y direction boundary condition on the bottom edge}
+\centering
+\end{figure}
+
+\begin{figure}
+    \makebox[\textwidth][c]{\adjustbox{trim= {0} {0.25\height} {0} {0.20\height}, clip}{\includegraphics[width = \textwidth ]{convergence_rate}}}
+    \caption{Convergence for first and second order finite elements. Substantial inaccuracies that appear as the number of degrees of freedom increase are addressed in the next section.}
+\centering
+\end{figure}
+
+\pagebreak
 %%=================================================================
 \subsection{No Displacement Boundary Conditions, No Tractions}
 \FloatBarrier
 
 \begin{figure}
     \makebox[\textwidth][c]{\adjustbox{trim= {0.} {0} {0} {0}, clip}{\includegraphics[height = 8cm ]{zero_zero}}};
-    \caption{Test boundary value problem: $a = 1$ and $b = 2$}
+    \caption{Test boundary value problem: $a = 2$, $b = 2$, $E = 10^8$ and $\nu = 0.35$}
 \centering
 \end{figure}
 
-With zero constraints and zero tractions, the zero vector is the trivial solution to the linear system. A robust code will properly handle this condition. While other test descriptions 
+With zero constraints and zero tractions, the zero vector is the trivial solution to the linear system. A robust code will properly handle this condition. While other test sections will have a visualization of the displacement solution, the solution to this problem looks exactly the same as the 
+
+\begin{figure}
+    \makebox[\textwidth][c]{\adjustbox{trim= {0.1\width} {0.0\height} {0} {0.0\height}, clip}{\includegraphics[width = \textwidth ]{zero_zero_quad_serendipity}}};
+    \caption{Linear quadrilateral mesh for a 2 unit by 2 unit rectangular plane shown with displacement scaled by $50,000$ times}
+\centering
+\end{figure}
 
 \FloatBarrier
 %%=================================================================
@@ -104,18 +127,44 @@ With zero constraints and zero tractions, the zero vector is the trivial solutio
 
 \begin{figure}
     \makebox[\textwidth][c]{\adjustbox{trim= {0.} {0} {0} {0}, clip}{\includegraphics[height = 8cm ]{nonzero_dirichlet}}};
-    \caption{Test boundary value problem: $a = 1$ and $b = 2$}
+    \caption{Test boundary value problem: $a = 2$, $b = 2$, $E = 10^8$ and $\nu = 0.35$}
 \centering
 \end{figure}
 
 \FloatBarrier
 %%=================================================================
-\subsection{Some Boundary Constraints, Linear Traction}
+\subsection{Some Boundary Constraints, Constant Traction}
 \FloatBarrier
 
 \begin{figure}
     \makebox[\textwidth][c]{\adjustbox{trim= {0.} {0} {0} {0}, clip}{\includegraphics[height = 8cm ]{linear_traction}}};
-    \caption{Test boundary value problem: $a = 1$ and $b = 2$}
+    \caption{Test boundary value problem: $a = 2$, $b = 2$, $E = 10^8$ and $\nu = 0.35$}
+\centering
+\end{figure}
+
+
+\begin{figure}
+    \makebox[\textwidth][c]{\adjustbox{trim= {0.1\width} {0.0\height} {0} {0.0\height}, clip}{\includegraphics[width = \textwidth ]{constant_traction_linear_quad}}};
+    \caption{Linear quadrilateral mesh for a 2 unit by 2 unit rectangular plane shown with displacement scaled by $50,000$ times}
+\centering
+\end{figure}
+
+\begin{figure}
+    \makebox[\textwidth][c]{\adjustbox{trim= {0.1\width} {0.0\height} {0} {0.0\height}, clip}{\includegraphics[width = \textwidth ]{constant_traction_linear_tri}}};
+    \caption{Linear triangle mesh for a 2 unit by 2 unit rectangular plane shown with displacement scaled by $50,000$ times}
+\centering
+\end{figure}
+
+\begin{figure}
+    \makebox[\textwidth][c]{\adjustbox{trim= {0.1\width} {0.0\height} {0} {0.0\height}, clip}{\includegraphics[width = \textwidth ]{constant_traction_quad_quad}}};
+    \caption{Quadratic quadrilateral mesh for a 2 unit by 1 unit rectangular plane shown with displacement scaled by $50,000$ times}
+\centering
+\end{figure}
+
+
+\begin{figure}
+    \makebox[\textwidth][c]{\adjustbox{trim= {0.1\width} {0.0\height} {0} {0.0\height}, clip}{\includegraphics[width = \textwidth ]{constant_traction_serendipity_quad}}};
+    \caption{Serendipity mesh for a 2 unit by 2 unit rectangular plane shown with displacement scaled by $50,000$ times}
 \centering
 \end{figure}
 
@@ -126,7 +175,32 @@ With zero constraints and zero tractions, the zero vector is the trivial solutio
 
 \begin{figure}
     \makebox[\textwidth][c]{\adjustbox{trim= {0.} {0} {0} {0}, clip}{\includegraphics[height = 8cm ]{quadratic_traction}}};
-    \caption{Test boundary value problem: $a = 1$ and $b = 2$}
+    \caption{Test boundary value problem: $a = 2$, $b = 2$, $E = 10^8$ and $\nu = 0.35$}
+\centering
+\end{figure}
+
+\begin{figure}
+    \makebox[\textwidth][c]{\adjustbox{trim= {0.1\width} {0.0\height} {0} {0.0\height}, clip}{\includegraphics[width = \textwidth ]{quad_traction_linear_quad}}};
+    \caption{Linear quadrilateral mesh for a 2 unit by 2 unit rectangular plane shown with displacement scaled by $50,000$ times}
+\centering
+\end{figure}
+
+\begin{figure}
+    \makebox[\textwidth][c]{\adjustbox{trim= {0.1\width} {0.0\height} {0} {0.0\height}, clip}{\includegraphics[width = \textwidth ]{quad_traction_linear_tri}}};
+    \caption{Linear triangle mesh for a 2 unit by 2 unit rectangular plane shown with displacement scaled by $50,000$ times}
+\centering
+\end{figure}
+
+\begin{figure}
+    \makebox[\textwidth][c]{\adjustbox{trim= {0.1\width} {0.0\height} {0} {0.0\height}, clip}{\includegraphics[width = \textwidth ]{quad_traction_quad_quad}}};
+    \caption{Quadratic quadrilateral mesh for a 2 unit by 1 unit rectangular plane shown with displacement scaled by $50,000$ times}
+\centering
+\end{figure}
+
+
+\begin{figure}
+    \makebox[\textwidth][c]{\adjustbox{trim= {0.1\width} {0.0\height} {0} {0.0\height}, clip}{\includegraphics[width = \textwidth ]{quad_traction_serendipity_quad}}};
+    \caption{Serendipity mesh for a 2 unit by 2 unit rectangular plane shown with displacement scaled by $50,000$ times}
 \centering
 \end{figure}
 
@@ -137,7 +211,7 @@ With zero constraints and zero tractions, the zero vector is the trivial solutio
 
 \begin{figure}
     \makebox[\textwidth][c]{\adjustbox{trim= {0.} {0} {0} {0}, clip}{\includegraphics[height = 8cm ]{constant_body}}};
-    \caption{Test boundary value problem: $a = 1$ and $b = 2$}
+    \caption{Test boundary value problem: $a = 2$, $b = 1$, $E = 10^8$ and $\nu = 0.35$}
 \centering
 \end{figure}
 
@@ -181,9 +255,35 @@ With zero constraints and zero tractions, the zero vector is the trivial solutio
 
 \begin{figure}
     \makebox[\textwidth][c]{\adjustbox{trim= {0.} {0} {0} {0}, clip}{\includegraphics[height = 8cm ]{linear_body}}};
-    \caption{Test boundary value problem: $a = 1$ and $b = 2$}
+    \caption{Test boundary value problem: $a = 2$, $b = 2$, $E = 10^8$ and $\nu = 0.35$}
 \centering
 \end{figure}
+
+\begin{figure}
+    \makebox[\textwidth][c]{\adjustbox{trim= {0.1\width} {0.0\height} {0} {0.0\height}, clip}{\includegraphics[width = \textwidth ]{linear_body_linear_quad}}};
+    \caption{Linear quadrilateral mesh for a 2 unit by 2 unit rectangular plane shown with displacement scaled by $50,000$ times}
+\centering
+\end{figure}
+
+\begin{figure}
+    \makebox[\textwidth][c]{\adjustbox{trim= {0.1\width} {0.0\height} {0} {0.0\height}, clip}{\includegraphics[width = \textwidth ]{linear_body_linear_tri}}};
+    \caption{Linear triangle mesh for a 2 unit by 2 unit rectangular plane shown with displacement scaled by $50,000$ times}
+\centering
+\end{figure}
+
+\begin{figure}
+    \makebox[\textwidth][c]{\adjustbox{trim= {0.1\width} {0.0\height} {0} {0.0\height}, clip}{\includegraphics[width = \textwidth ]{linear_body_quad_quad}}};
+    \caption{Quadratic quadrilateral mesh for a 2 unit by 1 unit rectangular plane shown with displacement scaled by $50,000$ times}
+\centering
+\end{figure}
+
+
+\begin{figure}
+    \makebox[\textwidth][c]{\adjustbox{trim= {0.1\width} {0.0\height} {0} {0.0\height}, clip}{\includegraphics[width = \textwidth ]{linear_body_serendipity_quad}}};
+    \caption{Serendipity mesh for a 2 unit by 2 unit rectangular plane shown with displacement scaled by $50,000$ times}
+\centering
+\end{figure}
+
 
 \FloatBarrier
 
