@@ -97,7 +97,7 @@ script:
   - mpirun ./a2/bin/a2 /tmp/test_meshes/a2/reorder_b.dmg /tmp/test_meshes/a2/reorder_b.smb
   - mpirun ./a2/bin/a2 /tmp/test_meshes/a2/reorder_c.dmg /tmp/test_meshes/a2/reorder_c.smb
   - ./a4/bin/app_test
-  - ./a4/convergence_test
+  - ./a4/bin/convergence_test
 
 notifications:
   webhooks:

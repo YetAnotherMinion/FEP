@@ -550,7 +550,7 @@ TEST_F(UserFieldTest, ScratchPad) {
 	me = NULL;
 	apf::destroyField(test_f);
 
-	apf::writeASCIIVtkFiles("batman_elm", m);
+	// apf::writeASCIIVtkFiles("batman_elm", m);
 
 	m->destroyNative();
 	apf::destroyMesh(m);
