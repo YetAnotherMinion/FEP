@@ -85,19 +85,61 @@ The KSP solver from PETSc was chosen because it had better documentation and exa
 
 \section{Tests}
 
-\subsection{No Boundary Constraints, No Tractions}
+%%=================================================================
+\subsection{No Displacement Boundary Conditions, No Tractions}
+\FloatBarrier
+
+\begin{figure}
+    \makebox[\textwidth][c]{\adjustbox{trim= {0.} {0} {0} {0}, clip}{\includegraphics[height = 8cm ]{zero_zero}}};
+    \caption{Test boundary value problem: $a = 1$ and $b = 2$}
+\centering
+\end{figure}
 
 With zero constraints and zero tractions, the zero vector is the trivial solution to the linear system. A robust code will properly handle this condition. While other test descriptions 
 
-
-\subsection{Zero Displacement Boundary Conditions, No Tractions}
-
-
-
-\subsection{Some Boundary Constraints, Simple Linear Traction}
-
-\subsection{Some Boundary Constraints, Simple Body Force}
 \FloatBarrier
+%%=================================================================
+\subsection{Non Zero Dirichlet Boundary Conditions}
+\FloatBarrier
+
+\begin{figure}
+    \makebox[\textwidth][c]{\adjustbox{trim= {0.} {0} {0} {0}, clip}{\includegraphics[height = 8cm ]{nonzero_dirichlet}}};
+    \caption{Test boundary value problem: $a = 1$ and $b = 2$}
+\centering
+\end{figure}
+
+\FloatBarrier
+%%=================================================================
+\subsection{Some Boundary Constraints, Linear Traction}
+\FloatBarrier
+
+\begin{figure}
+    \makebox[\textwidth][c]{\adjustbox{trim= {0.} {0} {0} {0}, clip}{\includegraphics[height = 8cm ]{linear_traction}}};
+    \caption{Test boundary value problem: $a = 1$ and $b = 2$}
+\centering
+\end{figure}
+
+\FloatBarrier
+%%=================================================================
+\subsection{Some Boundary Constraints,  Quadratic Traction}
+\FloatBarrier
+
+\begin{figure}
+    \makebox[\textwidth][c]{\adjustbox{trim= {0.} {0} {0} {0}, clip}{\includegraphics[height = 8cm ]{quadratic_traction}}};
+    \caption{Test boundary value problem: $a = 1$ and $b = 2$}
+\centering
+\end{figure}
+
+\FloatBarrier
+%%=================================================================
+\subsection{Some Boundary Constraints, Constant Body Force}
+\FloatBarrier
+
+\begin{figure}
+    \makebox[\textwidth][c]{\adjustbox{trim= {0.} {0} {0} {0}, clip}{\includegraphics[height = 8cm ]{constant_body}}};
+    \caption{Test boundary value problem: $a = 1$ and $b = 2$}
+\centering
+\end{figure}
 
 \begin{figure}
     \makebox[\textwidth][c]{\adjustbox{trim= {0.1\width} {0.10\height} {0} {0.25\height}, clip}{\includegraphics[width = \textwidth ]{gravity_linear_quad}}};
@@ -133,10 +175,17 @@ With zero constraints and zero tractions, the zero vector is the trivial solutio
 
 \FloatBarrier
 
-\subsection{Some Boundary Constraints, Tractions and Body Forces}
+%%=================================================================
+\subsection{Some Boundary Constraints, Linear Body Force}
+\FloatBarrier
 
-\subsection{Fully Constrained with Zero Displacements with Body Forces}
+\begin{figure}
+    \makebox[\textwidth][c]{\adjustbox{trim= {0.} {0} {0} {0}, clip}{\includegraphics[height = 8cm ]{linear_body}}};
+    \caption{Test boundary value problem: $a = 1$ and $b = 2$}
+\centering
+\end{figure}
 
+\FloatBarrier
 
 \section{Notable Bugs}
 
