@@ -344,6 +344,9 @@ void AlgebraicSystem::assemble(
 	* should be row-oriented*/
 	PetscScalar *values = new PetscScalar[idxM_size * idxN_size];
 	PetscScalar *y = new PetscScalar[idxM_size];
+	for(PetscInt ii = 0; ii < idxM_size; ++ii) {
+		y[ii] = 0.0;
+	}
 
 	/*loop over element stiffness matricies and copy contents into 
 	* the petsc approved formats*/
@@ -368,8 +371,8 @@ void AlgebraicSystem::assemble(
 			/*load the petsc scalar values which are known to be not zero
 			* by virtue of check above from the double*/
 			PetscScalar tmp = ke(kk,ll);
-			tmp *= ( -1 * local_displacements[jj]);
-			y[jj] = tmp;
+			tmp *= local_displacements[jj];
+			y[ii] -= tmp;
 		}
 	}
 	/*now that all of the above has been computed*/

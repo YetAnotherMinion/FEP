@@ -22,6 +22,7 @@
 
 #define YOUNGS_MODULUS  1e8
 #define POISSONS_RATIO 0.35
+#define PRINT_STRESS_AND_STRAIN 0
 
 class ElasticAnalysisTest : public testing::Test
 {
@@ -42,8 +43,6 @@ protected:
 		delete mesh_builder;	
 	}
 };
-
-
 
 
 TEST_F(ElasticAnalysisTest, AppRunTest) {
@@ -84,25 +83,10 @@ TEST_F(ElasticAnalysisTest, AppRunTest) {
 
 	ElasticAnalysis2D tmp(input);
 
-	PetscViewerSetFormat(PETSC_VIEWER_STDOUT_WORLD, PETSC_VIEWER_ASCII_MATLAB);
-
 	EXPECT_EQ(0, tmp.setup());
-
-	// MatView(tmp.linsys->K, PETSC_VIEWER_STDOUT_WORLD);
-
-	// VecView(tmp.linsys->F, PETSC_VIEWER_STDOUT_WORLD);
-
-
 	EXPECT_EQ(0, tmp.solve());
-	// VecView(tmp.linsys->d, PETSC_VIEWER_STDOUT_WORLD);
-
 	EXPECT_EQ(0, tmp.recover());
-	// std::cout << "=========== Solution ============" << std::endl;
-	// for(std::size_t ii = 0; ii < tmp.displacement.size(); ++ii) {
-	// 	std::cout << "d_" << ii << " = " << (tmp.displacement[ii]) << std::endl;
-	// }
-	
-	// apf::writeASCIIVtkFiles("solution_mesh", this->mesh);
+
 	delete geo_map;
 }
 
@@ -226,8 +210,29 @@ TEST_P(SampleProblems, NonZeroDirchlet) {
 	ElasticAnalysis2D tmp(input);
 
 	EXPECT_EQ(0, tmp.setup());
+	PetscViewerSetFormat(PETSC_VIEWER_STDOUT_WORLD, PETSC_VIEWER_ASCII_MATLAB);
+		// MatView(tmp.linsys->K, PETSC_VIEWER_STDOUT_WORLD);
+
+	//VecView(tmp.linsys->F, PETSC_VIEWER_STDOUT_WORLD);
+
 	EXPECT_EQ(0, tmp.solve());
 	EXPECT_EQ(0, tmp.recover());
+
+#if PRINT_STRESS_AND_STRAIN
+	for(auto kv : tmp.stress) {
+		std::cout << "x = " << kv.first << std::endl << "\t";
+		std::cout << "sigma_xx = " << kv.second[0] << std::endl << "\t";
+		std::cout << "sigma_yy = " << kv.second[1] << std::endl << "\t";
+		std::cout << "sigma_xy = " << kv.second[2] << std::endl;
+	}
+	std::cout << std::endl;
+	for(auto kv : tmp.strain) {
+		std::cout << "x = " << kv.first << std::endl << "\t";
+		std::cout << "e_xx = " << kv.second[0] << std::endl << "\t";
+		std::cout << "e_yy = " << kv.second[1] << std::endl << "\t";
+		std::cout << "e_xy = " << kv.second[2] << std::endl;
+	}
+#endif
 
 	std::cout << "************************************" << std::endl;
 	std::cout << "*\t" << this->suffix << std::endl;
@@ -279,18 +284,26 @@ TEST_P(SampleProblems, Gravity) {
 
 	ElasticAnalysis2D tmp(input);
 
-	// PetscViewerSetFormat(PETSC_VIEWER_STDOUT_WORLD, PETSC_VIEWER_ASCII_MATLAB);
-
 	EXPECT_EQ(0, tmp.setup());
-
-	// MatView(tmp.linsys->K, PETSC_VIEWER_STDOUT_WORLD);
-
-	// VecView(tmp.linsys->F, PETSC_VIEWER_STDOUT_WORLD);
-
-
 	EXPECT_EQ(0, tmp.solve());
-	// VecView(tmp.linsys->d, PETSC_VIEWER_STDOUT_WORLD);
 	EXPECT_EQ(0, tmp.recover());
+
+#if PRINT_STRESS_AND_STRAIN
+	for(auto kv : tmp.stress) {
+		std::cout << "x = " << kv.first << std::endl << "\t";
+		std::cout << "sigma_xx = " << kv.second[0] << std::endl << "\t";
+		std::cout << "sigma_yy = " << kv.second[1] << std::endl << "\t";
+		std::cout << "sigma_xy = " << kv.second[2] << std::endl;
+	}
+	std::cout << std::endl;
+	for(auto kv : tmp.strain) {
+		std::cout << "x = " << kv.first << std::endl << "\t";
+		std::cout << "e_xx = " << kv.second[0] << std::endl << "\t";
+		std::cout << "e_yy = " << kv.second[1] << std::endl << "\t";
+		std::cout << "e_xy = " << kv.second[2] << std::endl;
+	}
+#endif
+
 	std::cout << "************************************" << std::endl;
 	std::cout << "*\t" << this->suffix << std::endl;
 	std::cout << "************************************" << std::endl;
@@ -331,6 +344,23 @@ TEST_P(SampleProblems, ZeroConstraintZeroTraction) {
 	EXPECT_EQ(0, tmp.setup());
 	EXPECT_EQ(0, tmp.solve());
 	EXPECT_EQ(0, tmp.recover());
+
+#if PRINT_STRESS_AND_STRAIN
+	for(auto kv : tmp.stress) {
+		std::cout << "x = " << kv.first << std::endl << "\t";
+		std::cout << "sigma_xx = " << kv.second[0] << std::endl << "\t";
+		std::cout << "sigma_yy = " << kv.second[1] << std::endl << "\t";
+		std::cout << "sigma_xy = " << kv.second[2] << std::endl;
+	}
+	std::cout << std::endl;
+	for(auto kv : tmp.strain) {
+		std::cout << "x = " << kv.first << std::endl << "\t";
+		std::cout << "e_xx = " << kv.second[0] << std::endl << "\t";
+		std::cout << "e_yy = " << kv.second[1] << std::endl << "\t";
+		std::cout << "e_xy = " << kv.second[2] << std::endl;
+	}
+#endif
+
 	/*now check the displacements*/
 	for(std::size_t ii = 0; ii < tmp.displacement.size(); ++ii) {
 		/*this is a resolution of displacements to the 0.005mm or 5 microns*/
@@ -367,10 +397,10 @@ apf::Vector3 SampleLinearLoad_X(apf::Vector3 const & p)
 	return apf::Vector3(LINEAR_X_LOAD, 0, 0);
 }
 
-TEST_P(SampleProblems, LinearTraction) {
+TEST_P(SampleProblems, ConstantTraction) {
 	MeshTypes index = GetParam();
-	uint32_t X_ELMS = 10;
-	uint32_t Y_ELMS = 10;
+	uint32_t X_ELMS = 2;
+	uint32_t Y_ELMS = 2;
 	this->mesh = getMeshFromIndex(index, X_ELMS, Y_ELMS, this->suffix);
 	ASSERT_TRUE(this->mesh != NULL);
 	/*physical parameters*/
@@ -408,25 +438,166 @@ TEST_P(SampleProblems, LinearTraction) {
 	EXPECT_EQ(0, tmp.solve());
 	EXPECT_EQ(0, tmp.recover());
 
-	/*expect uniform stresses*/
-	for(auto pair : tmp.strain) {
-		/*linear test should have strain in perpendicular direction
-		* following Hook's law*/
-		EXPECT_NEAR(pair.second[0] * -Nu, pair.second[1], 1e-13);
-		/* zero strain in Z to satisfy our intial assumptions*/
-		EXPECT_NEAR(0.0, pair.second[2], 1e-13);
+#if PRINT_STRESS_AND_STRAIN
+	for(auto kv : tmp.stress) {
+		std::cout << "x = " << kv.first << std::endl << "\t";
+		std::cout << "sigma_xx = " << kv.second[0] << std::endl << "\t";
+		std::cout << "sigma_yy = " << kv.second[1] << std::endl << "\t";
+		std::cout << "sigma_xy = " << kv.second[2] << std::endl;
 	}
-	for(auto pair : tmp.stress) {
-		EXPECT_FLOAT_EQ(LINEAR_X_LOAD, pair.second[0]);
+	std::cout << std::endl;
+	for(auto kv : tmp.strain) {
+		std::cout << "x = " << kv.first << std::endl << "\t";
+		std::cout << "e_xx = " << kv.second[0] << std::endl << "\t";
+		std::cout << "e_yy = " << kv.second[1] << std::endl << "\t";
+		std::cout << "e_xy = " << kv.second[2] << std::endl;
 	}
+#endif
 
 	std::cout << "************************************" << std::endl;
 	std::cout << "*\t\t" << this->suffix << std::endl;
 	std::cout << "************************************" << std::endl;
 	std::cout << "strain energy: " << std::setprecision(20) << tmp.strain_energy;
 	std::cout << std::endl;
-	std::string bar = "linear_load";
+	std::string bar = "constant_load";
 	bar += this->suffix;
+	apf::writeASCIIVtkFiles(bar.c_str(), this->mesh);
 
+	delete geo_map;
+}
+
+TEST_P(SampleProblems, QuadraticTraction) {
+	MeshTypes index = GetParam();
+	uint32_t X_ELMS = 10;
+	uint32_t Y_ELMS = 10;
+	this->mesh = getMeshFromIndex(index, X_ELMS, Y_ELMS, this->suffix);
+	ASSERT_TRUE(this->mesh != NULL);
+	/*physical parameters*/
+	double E, Nu;
+	E = 8e8;
+	Nu = 0.35;
+	uint32_t integration_order = 4;
+	bool reorder_flag = true;
+
+	GeometryMappings* geo_map = new GeometryMappings();
+
+	void (*cnstr_ptr)(apf::MeshEntity*, apf::Mesh*, apf::Numbering*, std::vector<uint64_t> &, std::vector<double> &);
+	cnstr_ptr = &zeroDisplacementX_2D;
+	geo_map->addDircheletMapping(LEFT_EDGE, cnstr_ptr);
+	cnstr_ptr = &zeroDisplacementY_2D;
+	geo_map->addDircheletMapping(BOT_EDGE, cnstr_ptr);
+
+	apf::Vector3 (*traction_ptr)(apf::Vector3 const &);
+	traction_ptr = &QuadraticLoad_X;
+	geo_map->addNeumannMapping(RIGHT_EDGE, traction_ptr);
+
+	struct ElasticAnalysisInput input = {
+			this->mesh,
+			geo_map,
+			integration_order,
+			E,
+			Nu,
+			reorder_flag};
+
+	ElasticAnalysis2D tmp(input);
+
+	EXPECT_EQ(0, tmp.setup());
+	EXPECT_EQ(0, tmp.solve());
+	EXPECT_EQ(0, tmp.recover());
+
+#if PRINT_STRESS_AND_STRAIN
+	for(auto kv : tmp.stress) {
+		std::cout << "x = " << kv.first << std::endl << "\t";
+		std::cout << "sigma_xx = " << kv.second[0] << std::endl << "\t";
+		std::cout << "sigma_yy = " << kv.second[1] << std::endl << "\t";
+		std::cout << "sigma_xy = " << kv.second[2] << std::endl;
+	}
+	std::cout << std::endl;
+	for(auto kv : tmp.strain) {
+		std::cout << "x = " << kv.first << std::endl << "\t";
+		std::cout << "e_xx = " << kv.second[0] << std::endl << "\t";
+		std::cout << "e_yy = " << kv.second[1] << std::endl << "\t";
+		std::cout << "e_xy = " << kv.second[2] << std::endl;
+	}
+#endif
+
+	std::cout << "************************************" << std::endl;
+	std::cout << "*\t\t" << this->suffix << std::endl;
+	std::cout << "************************************" << std::endl;
+	std::cout << "strain energy: " << std::setprecision(20) << tmp.strain_energy;
+	std::cout << std::endl;
+	std::string bar = "quadratic_load";
+	bar += this->suffix;
+	apf::writeASCIIVtkFiles(bar.c_str(), this->mesh);
+
+	delete geo_map;
+}
+
+TEST_P(SampleProblems, StrainEnergyLinearBodyForce) {
+	MeshTypes index = GetParam();
+
+	uint32_t X_ELMS = 10;
+	uint32_t Y_ELMS = 10;
+	apf::Mesh2* mesh = getMeshFromIndex(index, X_ELMS, Y_ELMS, this->suffix);
+	std::cout << "\t\t\t\t" << this->suffix << std::endl;
+	ASSERT_TRUE(mesh != NULL);
+	/*physical parameters*/
+	double E, Nu;
+	E = 8e8;
+	Nu = 0.35;
+	uint32_t integration_order = 4;
+	bool reorder_flag = true;
+
+	GeometryMappings* geo_map = new GeometryMappings();
+
+	void (*cnstr_ptr)(apf::MeshEntity*, apf::Mesh*, apf::Numbering*, std::vector<uint64_t> &, std::vector<double> &);
+	cnstr_ptr = &zeroDisplacementX_2D;
+	geo_map->addDircheletMapping(LEFT_EDGE, cnstr_ptr);
+	cnstr_ptr = &zeroDisplacementY_2D;
+	geo_map->addDircheletMapping(BOT_EDGE, cnstr_ptr);
+
+	apf::Vector3 (*traction_ptr)(apf::Vector3 const &);
+	traction_ptr = &SampleLinearBodyForce_Y;
+	geo_map->addNeumannMapping(ALL_FACES, traction_ptr);
+
+	struct ElasticAnalysisInput input = {
+			mesh,
+			geo_map,
+			integration_order,
+			E,
+			Nu,
+			reorder_flag};
+
+	ElasticAnalysis2D *tmp = new ElasticAnalysis2D(input);
+
+	EXPECT_EQ(0, tmp->setup());
+	EXPECT_EQ(0, tmp->solve());
+	EXPECT_EQ(0, tmp->recover());
+
+#if PRINT_STRESS_AND_STRAIN
+	for(auto kv : tmp.stress) {
+		std::cout << "x = " << kv.first << std::endl << "\t";
+		std::cout << "sigma_xx = " << kv.second[0] << std::endl << "\t";
+		std::cout << "sigma_yy = " << kv.second[1] << std::endl << "\t";
+		std::cout << "sigma_xy = " << kv.second[2] << std::endl;
+	}
+	std::cout << std::endl;
+	for(auto kv : tmp.strain) {
+		std::cout << "x = " << kv.first << std::endl << "\t";
+		std::cout << "e_xx = " << kv.second[0] << std::endl << "\t";
+		std::cout << "e_yy = " << kv.second[1] << std::endl << "\t";
+		std::cout << "e_xy = " << kv.second[2] << std::endl;
+	}
+#endif
+
+	/*preserve a record of some of these meshes*/
+	std::string out_name("linear_body_force_2x2");
+	out_name += this->suffix;
+	apf::writeASCIIVtkFiles(out_name.c_str(), mesh);
+
+
+	delete tmp;
+	mesh->destroyNative();
+	apf::destroyMesh(mesh);
 	delete geo_map;
 }

@@ -13,6 +13,12 @@ apf::Vector3 LinearLoad_Y(apf::Vector3 const & p)
 	return apf::Vector3(0, -1000.0, 0);
 }
 
+apf::Vector3 QuadraticLoad_X(apf::Vector3 const & p) 
+{
+	double tmp = (-2000.0 + 400.0 * p[1] * p[1]);
+	return apf::Vector3(tmp, 0, 0);
+}
+
 apf::Vector3 Gravity_Y(apf::Vector3 const & p) 
 {
 	return apf::Vector3(0, -1000.0, 0);
@@ -22,7 +28,7 @@ apf::Vector3 Gravity_Y(apf::Vector3 const & p)
 apf::Vector3 SampleLinearBodyForce_Y(apf::Vector3 const & p)
 {
 	double y_component =  p[1] * 2000.0;
-	return apf::Vector3(0, -y_component, 0);
+	return apf::Vector3(-y_component, 0, 0);
 }
 
 enum class MeshTypes { LINEAR_QUAD, QUAD_QUAD, LINEAR_TRI, QUAD_TRI, SERENDIPITY_QUAD };
@@ -162,7 +168,7 @@ void smallDisplacementNegativeX_2D(
 		* therefor x terms are the even terms*/
 		if(0 == ii %2) {
 			dofs[curs_indx] = node_mapping[ii];
-			disp[curs_indx] = -1e-2;
+			disp[curs_indx] = 1e-2;
 			curs_indx++;
 		}
 	}
