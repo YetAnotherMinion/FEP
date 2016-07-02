@@ -54,3 +54,7 @@ UserStore
 
 #ignore config files
 *config*
+
+
+# ignore editor files
+*.swp
