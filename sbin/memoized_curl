@@ -1,0 +1,33 @@
+#! /usr/bin/bash
+
+set -eu
+
+if [[ $# -ne 3 ]]; then
+    exit 1
+fi
+
+dl_loc=$1
+shift;
+target=$1
+shift;
+chksum=$1
+shift
+
+# check if the file exists and do cursory corruption check
+if [[ -f "$target" ]]; then
+    if [[ "$(sha512sum $target | awk '{ print $1 }')" != $chksum ]]; then
+        curl -L $dl_loc -o $target
+        if [[ "$(sha512sum $target | awk '{ print $1 }')" != $chksum ]]; then
+            echo "ERROR: Checksums for updated $target does not match digest" >&2
+            exit 1
+        fi
+    else
+        echo "INFO: Using cached version of $target"
+    fi
+else
+    curl -L $dl_loc -o $target
+    if [[ "$(sha512sum $target | awk '{ print $1 }')" != $chksum ]]; then
+        echo "ERROR: Checksums for downloaded $target does not match digest" >&2
+        exit 2
+    fi
+fi

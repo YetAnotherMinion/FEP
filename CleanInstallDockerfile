@@ -1,0 +1,21 @@
+FROM alpine:3.4
+MAINTAINER YetAnotherMinion <yam@thinkalexandria.com>
+
+RUN apk --update add \
+    gcc \
+    g++ \
+    python \
+    git
+
+ENV FEP_DIR=/opt/FEP \
+    BRANCH_OR_HASH=master
+RUN git clone -b ${BRANCH_OR_HASH} https://github.com/YetAnotherMinion/FEP.git ${FEP_DIR}
+WORKDIR ${FEP_DIR}
+
+# The dependency installation script contains default variables for the download
+# location for third party packages (BLAS, LAPACK, SuperLU, ...). If you want to
+# use an internal artifact cache, I recommend setting docker environment variables
+# during the build step, which will override the variables in the script
+RUN ./install_dependencies.sh
+
+
