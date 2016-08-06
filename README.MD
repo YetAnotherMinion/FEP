@@ -1,5 +1,5 @@
 #Simple Finite Elements Solver
-
+[![Build Status](https://travis-ci.org/YetAnotherMinion/FEP.svg?branch=master)](https://travis-ci.org/YetAnotherMinion/FEP) 
 
 ###Methods
 
