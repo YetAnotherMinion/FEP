@@ -1,7 +1,7 @@
 #!/bin/bash
 
 set -eux
-self=$(realpath $(dirname "$0"))
+self=$(readlink -f $(dirname "$0"))
 export PATH=${self}:$PATH
 
 
