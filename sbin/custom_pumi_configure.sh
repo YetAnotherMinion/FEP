@@ -1,4 +1,4 @@
-#! /usr/bin/env sh
+#!/bin/bash
 
 #first arg is installation directory
 #second arg is test mesh location directory
