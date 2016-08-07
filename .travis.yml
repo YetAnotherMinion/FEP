@@ -18,16 +18,9 @@ addons:
   apt:
     packages:
       - gfortran        # used by all
-      - openmpi-bin     # -+
-      - openmpi-common  #  | all for openmpi
-      - libopenmpi-dev  # -+
-      - mpich2          # -+
-      - libmpich2-3     #  | all for mpich2
-      - libmpich2-dev   # -+
-
 env:
-  - MPI_VENDOR=openmpi
-# right now multiple versions of mpi do not work
+# right now the dependency installation just uses mpich2 built from source
+#- MPI_VENDOR=openmpi
 #  - MPI_VENDOR=mpich2
 before_install:
   - export DEP_DIR=$HOME/tmp
