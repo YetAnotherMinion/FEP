@@ -2,7 +2,7 @@
 
 #first arg is installation directory
 #second arg is test mesh location directory
-if [[ ! -z "$MPI" ]]
+if [[ ! -z ${MPI_VENDOR-} ]]; then
     case $MPI in
 	    "openmpi")
             export OMPI_CXX=$CXX
