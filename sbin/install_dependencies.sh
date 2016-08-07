@@ -2,6 +2,8 @@
 
 set -eux
 export PATH=$(dirname "$0"):$PATH
+self=$(pwd)
+
 
 # Default to only download and install missing dependencies
 # This way devs can modify the git folders
@@ -32,7 +34,7 @@ export PATH=$PATH:${prefix}/bin
 export CPATH=$CPATH:${prefix}/inc
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${prefix}/lib
 set -u
-package_dir=${prefix}/packages
+package_dir=${prefix}/src
 
 # Download locations for dependencies can be changed here to use internal
 # artifact caches
@@ -49,12 +51,12 @@ blas_chksum="81020ed02a2f7bd467f8417ff433c5a809a5fa49bbc77ae34e2e157b36aecaa49ea
 pumi_test_meshes_tarball=${package_dir}/pumi_test_meshes.tar.gz
 pumi_test_meshes_chksum="5a1530b27eb4cc88958f5758a64f10eadd0f564dc0959bd3e10a2d51721eb41dff529734cbe28d9e83ea5068d47c56952979c3c845870f18aecb95900f0cb5b8"
 
-gtest_dir=${prefix}/googletest
-petsc_dir=${prefix}/petsc
-superlu_dir=${prefix}/git.superlu
-sowing_dir=${prefix}/git.sowing
-core_dir=${prefix}/core
-test_meshes_dir=${prefix}/test_meshes
+gtest_dir=${package_dir}/googletest
+petsc_dir=${package_dir}/petsc
+superlu_dir=${package_dir}/git.superlu
+sowing_dir=${package_dir}/git.sowing
+core_dir=${package_dir}/core
+test_meshes_dir=${package_dir}/test_meshes
 
 #### End of user configuration ####
 
@@ -97,7 +99,6 @@ if [[ ! -d $sowing_dir ]]; then
     git clone https://bitbucket.org/petsc/pkg-sowing.git $sowing_dir
 fi
 
-oldwd=$(pwd)
 cd $package_dir
 #### Build MPICH2 ####
 
@@ -117,14 +118,31 @@ cd $petsc_dir
     --download-sowing=${sowing_dir} \
     --with-pthread=yes \
     PETSC_ARCH=linux-mpich \
-    PETSC_DIR=$petsc_dir \
+    PETSC_DIR=${petsc_dir} \
     --with-cc=mpicc \
     --with-cxx=mpicxx \
     --with-fc=mpif90 \
     --CXX=$CXX \
     --CC=$CC
 
+make PETSC_DIR=${petsc_dir} PETSC_ARCH=linux-mpich all
+make PETSC_DIR=${petsc_dir} PETSC_ARCH=linux-mpich install
+# test the installed library
+make PETSC_DIR=${petsc_dir} PETSC_ARCH="" test
+
 #### Build PUMI ####
+mkdir -p ${core_dir}/build
+cd ${core_dir}/build
+# need to copy the script into a specific location because it calls
+# subshells that use relative paths. We are hotpatching the regular
+# install process anyway
+cp ${self}/custom_pumi_configure.sh ${core_dir}/custom_pumi_configure.sh
+source ../custom_pumi_configure.sh ${prefix}/lib/pumi ${prefix}/core/meshes
+make -j ${max_make_threads} -l ${max_make_load}
+make install -k
+ctest -W
+
+
 
 
 tar -xzf ${package_dir}/pumi_test_meshes.tar.gz -C ${prefix}/core
