@@ -109,26 +109,30 @@ make -j $max_make_threads -l $max_make_load
 make install
 # the path should already be setup
 mpiexec --version
+mpicc --version
+mpicxx --version
+mpif90 --version
 
 #### Build PETSC ####
 cd $petsc_dir
+export PETSC_ARCH=linux-mpich
+export PETSC_DIR=${petsc_dir}
+
 ./configure --prefix=$prefix \
     --download-fblaslapack=${blas_tarball} \
     --download-superlu=${superlu_dir} \
     --download-sowing=${sowing_dir} \
     --with-pthread=yes \
-    PETSC_ARCH=linux-mpich \
-    PETSC_DIR=${petsc_dir} \
     --with-cc=mpicc \
     --with-cxx=mpicxx \
     --with-fc=mpif90 \
     --CXX=$CXX \
     --CC=$CC
 
-make PETSC_DIR=${petsc_dir} PETSC_ARCH=linux-mpich all
-make PETSC_DIR=${petsc_dir} PETSC_ARCH=linux-mpich install
+make all
+make install
 # test the installed library
-make PETSC_DIR=${petsc_dir} PETSC_ARCH="" test
+make test
 
 #### Build PUMI ####
 mkdir -p ${core_dir}/build
