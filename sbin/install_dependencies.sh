@@ -1,7 +1,7 @@
 #! /usr/bin/bash
 
 set -eux
-self=$(dirname "$0")
+self=$(realpath $(dirname "$0"))
 export PATH=${self}:$PATH
 
 
@@ -107,11 +107,6 @@ cd mpich-3.2
 ./configure --prefix=${prefix}
 make -j $max_make_threads -l $max_make_load
 make install
-# the path should already be setup
-mpiexec --version
-mpicc --version
-mpicxx --version
-mpif90 --version
 
 #### Build PETSC ####
 cd $petsc_dir
@@ -137,6 +132,11 @@ make test
 #### Build PUMI ####
 mkdir -p ${core_dir}/build
 cd ${core_dir}/build
+
+# right now we only support using MPICH
+export MPICH_CXX=$CXX
+export MPICH_CC=$CC
+
 # need to copy the script into a specific location because it calls
 # subshells that use relative paths. We are hotpatching the regular
 # install process anyway

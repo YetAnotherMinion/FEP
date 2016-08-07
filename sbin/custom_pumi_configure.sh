@@ -2,11 +2,18 @@
 
 #first arg is installation directory
 #second arg is test mesh location directory
-case $MPI in 
-	"openmpi") export OMPI_CXX=$CXX; export OMPI_CC=$CC ;;	
-	"mpich2") export MPICH_CXX=$CXX; export MPICH_CC=$CC;;
-
-esac
+if [[ ! -z "$MPI" ]]
+    case $MPI in
+	    "openmpi")
+            export OMPI_CXX=$CXX
+            export OMPI_CC=$CC
+            ;;
+	    "mpich2")
+            export MPICH_CXX=$CXX
+            export MPICH_CC=$CC
+            ;;
+    esac
+fi
 
 cmake .. \
   -DCMAKE_C_COMPILER="mpicc" \

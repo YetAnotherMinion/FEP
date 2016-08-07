@@ -16,6 +16,6 @@ WORKDIR ${FEP_DIR}
 # location for third party packages (BLAS, LAPACK, SuperLU, ...). If you want to
 # use an internal artifact cache, I recommend setting docker environment variables
 # during the build step, which will override the variables in the script
-RUN ./install_dependencies.sh
+RUN ./install_dependencies.sh clean
 
 
