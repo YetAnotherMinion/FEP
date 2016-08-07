@@ -9,14 +9,24 @@ export PATH=${self}:$PATH
 # This way devs can modify the git folders
 clean_build=false
 
-if [[ $# -eq 1 ]]; then
-    case $1 in
-        "clean")
+# prefix is where we will install everything
+prefix=$HOME/tmp
+
+while getopts ":p:c" opt; do
+    case $opt in
+        c)
             clean_build=true
             ;;
+        p)
+            prefix=$OPTARG
+            ;;
+        :)
+            echo "Option $OPTARG requires an argument" >&2
+            exit 1
     esac
-fi
+done
 
+exit 1
 #### Configure Your Install Here ####
 
 # override compiler defaults here
@@ -27,8 +37,6 @@ CXX=${CXX:-g++}
 max_make_threads=$(expr $(getconf _NPROCESSORS_ONLN) - 1)
 max_make_load=${max_make_threads}
 
-# prefix is where we will install everything
-prefix=$HOME/tmp
 set +u
 export PATH=$PATH:${prefix}/bin
 export CPATH=$CPATH:${prefix}/inc
