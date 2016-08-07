@@ -44,7 +44,7 @@ install:
   - git clone https://github.com/SCOREC/core.git /tmp/core
   - git clone https://github.com/SCOREC/fep.git /tmp/test_meshes #get the test meshes
   - git clone https://github.com/xiaoyeli/superlu /tmp/packages/git.superlu
-  - mkdir /tmp/packages && cd /tmp/packages
+  - mkdir -p /tmp/packages && cd /tmp/packages
   - wget http://ftp.mcs.anl.gov/pub/petsc/externalpackages/fblaslapack-3.4.2.tar.gz  #download needed packages
   - wget https://www.scorec.rpi.edu/pumi/pumi_test_meshes.tar.gz #test meshes for PUMI
   - tar xzf pumi_test_meshes.tar.gz -C /tmp/core/

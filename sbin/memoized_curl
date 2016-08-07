@@ -18,7 +18,7 @@ if [[ -f "$target" ]]; then
     if [[ "$(sha512sum $target | awk '{ print $1 }')" != $chksum ]]; then
         curl -L $dl_loc -o $target
         if [[ "$(sha512sum $target | awk '{ print $1 }')" != $chksum ]]; then
-            echo "ERROR: Checksums for updated $target does not match digest" >&2
+            echo "[ERROR]   Checksums for updated $target does not match digest" >&2
             exit 1
         fi
     else
@@ -27,7 +27,7 @@ if [[ -f "$target" ]]; then
 else
     curl -L $dl_loc -o $target
     if [[ "$(sha512sum $target | awk '{ print $1 }')" != $chksum ]]; then
-        echo "ERROR: Checksums for downloaded $target does not match digest" >&2
+        echo "[WARNING] Checksums for downloaded $target does not match digest" >&2
         exit 2
     fi
 fi
