@@ -99,7 +99,7 @@ if [[ ! -d $sowing_dir ]]; then
     git clone https://bitbucket.org/petsc/pkg-sowing.git $sowing_dir
 fi
 
-cd $package_dir
+cd ${package_dir}
 #### Build MPICH2 ####
 
 tar -xzf $mpich_tarball
@@ -132,6 +132,7 @@ make test
 #### Build PUMI ####
 mkdir -p ${core_dir}/build
 cd ${core_dir}/build
+tar -xzf ${pumi_test_meshes_tarball} -C ${core_dir}
 
 # right now we only support using MPICH
 export MPICH_CXX=$CXX
@@ -141,13 +142,8 @@ export MPICH_CC=$CC
 # subshells that use relative paths. We are hotpatching the regular
 # install process anyway
 cp $(which custom_pumi_configure.sh) ${core_dir}/custom_pumi_configure.sh
-source ../custom_pumi_configure.sh ${prefix}/lib/pumi ${prefix}/core/meshes
+source ../custom_pumi_configure.sh ${prefix}/lib/pumi ${package_dir}/core/meshes
 make -j ${max_make_threads} -l ${max_make_load}
 make install -k
 ctest -W
-
-
-
-
-tar -xzf ${package_dir}/pumi_test_meshes.tar.gz -C ${prefix}/core
 
