@@ -24,9 +24,6 @@ addons:
       - mpich2          # -+
       - libmpich2-3     #  | all for mpich2
       - libmpich2-dev   # -+
-      - cmake
-    sources:
-      - kalakris-cmake
 
 env:
   - MPI=openmpi
@@ -34,13 +31,24 @@ env:
 #  - MPI=mpich2
 
 before_install:
-  - cmake --version
   - export MAIN_DIR=$PWD
   - mkdir a1/obj a2/obj a3/obj a4/obj #create all needed dirs before any other steps 
   - mkdir a1/bin a2/bin a3/bin a4/bin
   - mkdir lib #use one folder at project root for lib
 
 install:
+  ############################################################################
+  # Install a recent CMake (unless already installed on OS X)
+  ############################################################################
+  - |
+    if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
+      CMAKE_URL="http://www.cmake.org/files/v3.5/cmake-3.5.2-Linux-x86_64.tar.gz"
+      mkdir cmake && travis_retry wget --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
+      export PATH=${DEPS_DIR}/cmake/bin:${PATH}
+    else
+      if ! brew ls --version cmake &>/dev/null; then brew install cmake; fi
+    fi
+  - cmake --version
   - mpicc --version
   - git clone -b maint https://bitbucket.org/petsc/petsc /tmp/petsc
   - git clone https://github.com/YetAnotherMinion/googletest.git /tmp/googletest

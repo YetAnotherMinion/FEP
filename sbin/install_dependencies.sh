@@ -1,8 +1,8 @@
 #! /usr/bin/bash
 
 set -eux
-export PATH=$(dirname "$0"):$PATH
-self=$(pwd)
+self=$(dirname "$0")
+export PATH=${self}:$PATH
 
 
 # Default to only download and install missing dependencies
@@ -140,7 +140,7 @@ cd ${core_dir}/build
 # need to copy the script into a specific location because it calls
 # subshells that use relative paths. We are hotpatching the regular
 # install process anyway
-cp ${self}/custom_pumi_configure.sh ${core_dir}/custom_pumi_configure.sh
+cp $(which custom_pumi_configure.sh) ${core_dir}/custom_pumi_configure.sh
 source ../custom_pumi_configure.sh ${prefix}/lib/pumi ${prefix}/core/meshes
 make -j ${max_make_threads} -l ${max_make_load}
 make install -k
