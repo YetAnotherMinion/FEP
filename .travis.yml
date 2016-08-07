@@ -30,7 +30,7 @@ env:
 # right now multiple versions of mpi do not work
 #  - MPI_VENDOR=mpich2
 before_install:
-  - export DEP_DIR=/tmp
+  - export DEP_DIR=$HOME/tmp
   - export MAIN_DIR=$PWD
   - mkdir a1/obj a2/obj a3/obj a4/obj #create all needed dirs before any other steps 
   - mkdir a1/bin a2/bin a3/bin a4/bin
