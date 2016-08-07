@@ -26,7 +26,6 @@ while getopts ":p:c" opt; do
     esac
 done
 
-exit 1
 #### Configure Your Install Here ####
 
 # override compiler defaults here
