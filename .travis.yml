@@ -46,6 +46,7 @@ install:
   # Install PETSc, MPICH2, PUMI, BLAS, LAPACK, SOWING, SuperLU
   ############################################################################
   - ./sbin/install_dependencies.sh -c -p ${DEP_DIR}
+  - export PATH=${DEP_DIR}/bin:$PATH
   #create the bin directories
   - touch travis_config.mk
   - echo -e 'ifeq ($(CC), gcc)\n\tMPIFLAGS+=--std=c++0x -Wno-long-long\nelse\n\tMPIFLAGS+=-Wno-c++11-long-long\nendif\nPETSC_DIR=/tmp/packages/petsc-3.6.1\nLDIR=$(MAIN_DIR)/lib\nPUMI_DIR=$(LDIR)/pumi\nGTEST_DIR=/tmp/googletest' > travis_config.mk
