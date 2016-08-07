@@ -13,7 +13,7 @@ ls -al $3
   PETSC_ARCH=linux-mpich  PETSC_DIR=$2 \
   --with-cc=mpicc --with-cxx=mpicxx --with-fc=mpif90 --CXX=$CXX --CC=$CC \
   --download-fblaslapack=$3/fblaslapack-3.4.2.tar.gz \
-  --download-superlu=$3/superlu_4.3.tar.gz \
+  --download-superlu=$3/git.superlu \
   --with-pthread=yes
 
 if [ $? -ne 0 ]; then
