@@ -21,7 +21,7 @@ addons:
 env:
 # right now the dependency installation just uses mpich2 built from source
 #- MPI_VENDOR=openmpi
-#  - MPI_VENDOR=mpich2
+  - MPI_VENDOR=mpich2
 before_install:
   - export DEP_DIR=$HOME/tmp
   - export MAIN_DIR=$PWD
@@ -49,7 +49,7 @@ install:
   - export PATH=${DEP_DIR}/bin:$PATH
   #create the bin directories
   - touch travis_config.mk
-  - echo -e 'ifeq ($(CC), gcc)\n\tMPIFLAGS+=--std=c++0x -Wno-long-long\nelse\n\tMPIFLAGS+=-Wno-c++11-long-long\nendif\nPETSC_DIR=$(DEP_DIR)/src/petsc\nLDIR=$(DEP_DIR)/lib\nPUMI_DIR=$(DEP_DIR)/src/pumi\nGTEST_DIR=$(DEP_DIR)/src/googletest' > travis_config.mk
+  - echo -e "ifeq ($(CC), gcc)\n\tMPIFLAGS+=--std=c++0x -Wno-long-long\nelse\n\tMPIFLAGS+=-Wno-c++11-long-long\nendif\nPETSC_DIR=${DEP_DIR}/src/petsc\nLDIR=${DEP_DIR}/lib\nPUMI_DIR=${DEP_DIR}/src/pumi\nGTEST_DIR=${DEP_DIR}/src/googletest" > travis_config.mk
   - cat travis_config.mk | tee a1/config.mk a2/config.mk a3/config.mk a4/config.mk
   - MPIEXEC='mpiexec'
   - test $MPI_VENDOR == mpich2 && MPIEXEC='mpiexec -launcher fork' || true
