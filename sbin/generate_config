@@ -1,0 +1,26 @@
+#!/bin/bash
+
+self=$(basename "$0")
+DEP_DIR=
+
+case $# in
+    1)
+        DEP_DIR=$(readlink -f $1)
+        ;;
+    *)
+        echo "usage: ${self} <install_prefix>"
+        exit 0
+        ;;
+esac
+
+echo -e "ifeq(\$(CC), gcc)
+    MPIFLAGS+=--std=c++0x -Wno-long-long
+else
+    MPIFLAGS+=-Wno    -c++11-long-long
+endif
+PETSC_DIR=${DEP_DIR}/src/petsc
+LDIR=${DEP_DIR}/lib
+PUMI_DIR=${DEP_DIR}/src/pumi
+TEST_DIR=${DEP_DIR}/src/googletest
+"
+
