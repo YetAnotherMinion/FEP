@@ -13,10 +13,11 @@ case $# in
         ;;
 esac
 
-echo -e "ifeq(\$(CC), gcc)
-    MPIFLAGS+=--std=c++0x -Wno-long-long
+echo -e "
+ifeq(\$(CC), gcc)
+	MPIFLAGS+=--std=c++0x -Wno-long-long
 else
-    MPIFLAGS+=-Wno    -c++11-long-long
+	MPIFLAGS+=-Wno-c++11-long-long
 endif
 PETSC_DIR=${DEP_DIR}/src/petsc
 LDIR=${DEP_DIR}/lib

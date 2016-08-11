@@ -4,6 +4,7 @@ set -eux
 self=$(readlink -f $(dirname "$0"))
 export PATH=${self}:$PATH
 
+echo ${MAKE_NP}
 
 # Default to only download and install missing dependencies
 # This way devs can modify the git folders
@@ -131,7 +132,7 @@ export PETSC_DIR=${petsc_dir}
     --CXX=$CXX \
     --CC=$CC
 
-make -j ${max_make_threads} -l ${max_make_load}  all
+make MAKE_NP=${MAKE_NP}  all
 make install
 # test the installed library
 make test
