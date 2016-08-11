@@ -14,7 +14,7 @@ case $# in
 esac
 
 echo -e "
-ifeq(\$(CC), gcc)
+ifeq (\$(CC), gcc)
 	MPIFLAGS+=--std=c++0x -Wno-long-long
 else
 	MPIFLAGS+=-Wno-c++11-long-long
