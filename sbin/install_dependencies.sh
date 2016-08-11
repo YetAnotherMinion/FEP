@@ -112,7 +112,7 @@ cd ${package_dir}
 tar -xzf $mpich_tarball
 cd mpich-3.2
 ./configure --prefix=${prefix}
-make -j $max_make_threads -l $max_make_load
+make -j ${max_make_threads} -l ${max_make_load}
 make install
 
 #### Build PETSC ####
@@ -131,7 +131,7 @@ export PETSC_DIR=${petsc_dir}
     --CXX=$CXX \
     --CC=$CC
 
-make all
+make -j ${max_make_threads} -l ${max_make_load}  all
 make install
 # test the installed library
 make test
