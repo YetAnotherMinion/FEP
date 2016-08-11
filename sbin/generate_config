@@ -20,7 +20,7 @@ else
 endif
 PETSC_DIR=${DEP_DIR}/src/petsc
 LDIR=${DEP_DIR}/lib
-PUMI_DIR=${DEP_DIR}/src/pumi
+PUMI_DIR=${DEP_DIR}/src/core
 TEST_DIR=${DEP_DIR}/src/googletest
 "
 
