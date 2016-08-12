@@ -1,4 +1,5 @@
 run.sh
+path
 build.sh
 sync.sh
 lib/

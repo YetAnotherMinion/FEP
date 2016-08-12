@@ -1,0 +1,21 @@
+#!/bin/bash
+
+self=$(basename "$0")
+DEP_DIR=
+
+case $# in
+    1)
+        DEP_DIR=$(readlink -f $1)
+        ;;
+    *)
+        echo "usage: ${self} <install_prefix>"
+        exit 0
+        ;;
+esac
+
+echo -e "
+PATH=${DEP_DIR}:\$PATH
+CC=\${CC:-gcc}
+CXX=\${CXX:-g++}
+"
+

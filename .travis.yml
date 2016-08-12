@@ -46,7 +46,8 @@ install:
   # Install PETSc, MPICH2, PUMI, BLAS, LAPACK, SOWING, SuperLU
   ############################################################################
   - ./sbin/install_dependencies.sh -c -p ${DEP_DIR}
-  - export PATH=${DEP_DIR}/bin:$PATH
+  - ./sbin/generate_path ${DEP_DIR} > path
+  - source path; mkdir -p {a1,a2,a3,a4}/obj; mkdir -p {a1,a2,a3,a4}/bin
   #create the bin directories
   - ./sbin/generate_config ${DEP_DIR} | tee a1/config.mk a2/config.mk a3/config.mk a4/config.mk
   - MPIEXEC='mpiexec'

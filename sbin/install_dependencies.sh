@@ -151,6 +151,6 @@ export MPICH_CC=$CC
 cp $(which custom_pumi_configure.sh) ${core_dir}/custom_pumi_configure.sh
 source ../custom_pumi_configure.sh ${prefix}/lib/pumi ${package_dir}/core/meshes
 make -j ${max_make_threads} -l ${max_make_load}
-make install -k
+make install
 ctest -W
 
