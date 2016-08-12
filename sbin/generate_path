@@ -14,7 +14,7 @@ case $# in
 esac
 
 echo -e "
-PATH=${DEP_DIR}:\$PATH
+PATH=${DEP_DIR}/bin:\$PATH
 CC=\${CC:-gcc}
 CXX=\${CXX:-g++}
 "
