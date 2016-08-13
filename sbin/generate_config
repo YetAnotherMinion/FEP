@@ -26,6 +26,6 @@ endif
 PETSC_DIR=${DEP_DIR}/src/petsc
 LDIR=${DEP_DIR}/lib
 PUMI_DIR=${DEP_DIR}/lib/pumi
-TEST_DIR=${DEP_DIR}/src/googletest
+GTEST_DIR=${DEP_DIR}/src/googletest
 "
 

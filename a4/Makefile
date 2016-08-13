@@ -15,13 +15,6 @@ PETSC_INC = -I $(PETSC_DIR)/include
 PETSC_LIB = -L $(PETSC_DIR)/lib
 
 #===============================
-#	  XERCES C++ XML PARSING 
-#===============================
-
-# XERCES_INC = -I $(XERCES_DIR)/include
-# XERCES_LIBS += -L $(XERCES_DIR)/lib
-
-#===============================
 #			PUMI 
 #===============================
 
