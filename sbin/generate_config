@@ -14,9 +14,13 @@ case $# in
 esac
 
 echo -e "
-ifeq (\$(CC), gcc)
+# by default \$CC is cc and \$CXX is g++ 
+# setting environment variables only overrides defaults, need to 'make -e' to
+# override
+ifeq (\$(CXX), g++)
 	MPIFLAGS+=--std=c++0x -Wno-long-long
-else
+endif
+ifeq (\$(CXX), clang++)
 	MPIFLAGS+=-Wno-c++11-long-long
 endif
 PETSC_DIR=${DEP_DIR}/src/petsc
