@@ -1,5 +1,6 @@
 #!/bin/bash
 
+set -eu
 #first arg is installation directory
 #second arg is test mesh location directory
 if [[ ! -z ${MPI_VENDOR-} ]]; then
